@@ -1,5 +1,7 @@
 #include <string>
 #include <iostream>
+#include <unistd.h>
+#include <stdio.h>
 #include "CinBase.h"
 #include "CinDBWriter.h"
 
@@ -11,8 +13,12 @@ int main() {
     std::cout << CinBase::GetNextIDString() << std::endl;
 
     //
-    CinDBWriter writer("/Users/dhr");
+    char cwd[1024];
+    getcwd(cwd, sizeof(cwd));
+    std::string db = cwd;
+    db += "/test.cdb";
+    CinDBWriter writer(db);
     writer.write();
 
-    return 0;
+    return 1;
 }
