@@ -3,6 +3,8 @@
 #include <string>
 #include <iostream>
 
+#ifndef CINBASE_H
+#define CINBASE_H
 
 class CinBase {
 
@@ -33,3 +35,5 @@ class CinBase {
 
 
 };
+
+#endif
