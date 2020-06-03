@@ -17,9 +17,9 @@ int main() {
     //
     char cwd[1024];
     getcwd(cwd, sizeof(cwd));
-    std::string db = cwd;
-    db += "/test.cdb";
-    CinDBWriter writer(db);
+    std::string db_path = cwd;
+    db_path += "/test.cdb";
+    CinDBWriter writer(db_path);
 
     vtkSmartPointer<vtkUnstructuredGrid> input = vtkSmartPointer<vtkUnstructuredGrid>::New();
 
