@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include "CinBase.h"
 #include "CinDBWriter.h"
+#include "vtkUnstructuredGrid.h"
+#include "vtkSmartPointer.h"
 
 int main() {
 
@@ -18,6 +20,15 @@ int main() {
     std::string db = cwd;
     db += "/test.cdb";
     CinDBWriter writer(db);
+
+    vtkSmartPointer<vtkUnstructuredGrid> input = vtkSmartPointer<vtkUnstructuredGrid>::New();
+
+    writer.setInput( input );
+    writer.addCameraPosition( 0.0, 0.5);
+    writer.addCameraPosition(10.0,10.5);
+    writer.addCameraPosition(20.0,20.5);
+    writer.addCameraPosition(30.0,30.5);
+
     writer.write();
 
     return 1;
