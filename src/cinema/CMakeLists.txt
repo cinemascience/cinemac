@@ -3,7 +3,6 @@ add_library(cinema
                 CinDBWriter.cxx CinDBWriter.h
                 )
 
-set(VTK_DIR "/Users/VTK")
-find_package(VTK REQUIRED)
+find_package(VTK REQUIRED NO_MODULE)
 
 target_link_libraries(cinema ${VTK_LIBRARIES})
