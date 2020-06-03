@@ -25,7 +25,7 @@ Run the following to test:
     ./tests/dbcreate
 ````
 
-This should create a directory in the `build` area with the following contents:
+This should create a directory in the `build` area with the following contents (there will be no images):
 
 ````
     test.cdb/
