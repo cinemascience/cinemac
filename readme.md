@@ -13,7 +13,7 @@ The cmake build requires VTK, and will look for it. You may have to set that dir
     cd cinemac
     mkdir build
     cd build
-    ccmake ../src -DCMAKE_INSTALL_PREFIX=/your/install/prefix
+    cmake ../src -DCMAKE_INSTALL_PREFIX=/your/install/prefix
 ````
 
 Once this is done, you should be able to include and link to the installed library. For an example of how to use the libray, look at the contents of `tests/dbtest.cxx`.
