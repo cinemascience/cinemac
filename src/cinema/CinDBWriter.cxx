@@ -37,7 +37,7 @@ bool CinDBWriter::write()
         {
             imageName = CinBase::GetNextIDString() + ".png";
             imagePath = this->path + "/" + imageName;
-            csvfile << *ip << "," << *it << "," << imageName << std::endl;
+            csvfile << std::to_string(*ip) << "," << std::to_string(*it) << "," << imageName << std::endl;
 
             this->setCameraPosition(*ip, *it);
             this->capture(imagePath);
