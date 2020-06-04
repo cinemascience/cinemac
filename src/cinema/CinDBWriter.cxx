@@ -72,7 +72,7 @@ bool CinDBWriter::load()
     //read all the data from the file
     this->reader->SetFileName(this->infile.c_str());
     this->reader->Update();
-    std::cout << "num timesteps: " << this->reader->GetNumberOfTimeSteps() << std::endl;
+    // std::cout << "num timesteps: " << this->reader->GetNumberOfTimeSteps() << std::endl;
 
     // assemble the pipeline
     this->mapper->SetInputConnection(this->reader->GetOutputPort());
