@@ -6,9 +6,10 @@
 #include <vtkSmartPointer.h>
 #include <vtkDataSetMapper.h>
 #include <vtkActor.h>
+#include <vtkCamera.h>
 #include <vtkRenderer.h>
 #include <vtkRenderWindow.h>
-#include <vtkRenderWindowInteractor.h>
+// #include <vtkRenderWindowInteractor.h>
 #include <vtkWindowToImageFilter.h>
 #include <vtkPNGWriter.h>
 
@@ -21,16 +22,26 @@ class CinDBWriter : public CinBase
 
     CinDBWriter(const std::string& path)
     {
-        this->path = path;
-        this->input = 0;
-        this->reader = vtkXMLUnstructuredGridReader::New(); 
-        this->mapper = vtkDataSetMapper::New();
-        this->actor  = vtkActor::New();
-        this->renderer = vtkRenderer::New();
+            // path to the main cinema directory
+        this->path      = path;
+        this->width     = 640;
+        this->height    = 480;
+        this->input     = 0;
+        this->reader    = vtkXMLUnstructuredGridReader::New(); 
+        this->mapper    = vtkDataSetMapper::New();
+        this->actor     = vtkActor::New();
+        this->renderer  = vtkRenderer::New();
         this->renderWin = vtkRenderWindow::New();
-        this->renderWinInteractor = vtkRenderWindowInteractor::New();
-        this->windowToImage = vtkWindowToImageFilter::New();
-        this->pngWriter = vtkPNGWriter::New();
+        this->camera    = vtkCamera::New();
+        this->pngWriter             = vtkPNGWriter::New();
+
+        // state
+        this->loaded = false;
+    }
+
+    void setInputFile( const std::string & filename )
+    {
+        this->infile = filename;
     }
 
     bool setInput( vtkUnstructuredGrid * data )
@@ -50,27 +61,32 @@ class CinDBWriter : public CinBase
         return result;
     }
 
+    bool load();
     bool write();
-    bool render( const std::string & filename);
-    bool capture(const std::string & filename);
 
     protected:
 
-    vtkUnstructuredGrid * input;
-    vtkRenderWindow * rWindow;
-    std::string path;
-    std::vector<float> phi;
-    std::vector<float> theta;
+    int                     height;
+    std::string             infile;
+    vtkUnstructuredGrid *   input;
+    bool                    loaded;
+    std::string             path;
+    std::vector<float>      phi;
+    std::vector<float>      theta;
+    int                     width;
 
     // pipeline
-    vtkXMLUnstructuredGridReader * reader;
-    vtkDataSetMapper * mapper;
-    vtkActor * actor;
-    vtkRenderer * renderer;
-    vtkRenderWindow * renderWin;
-    vtkRenderWindowInteractor * renderWinInteractor;
-    vtkWindowToImageFilter * windowToImage;
-    vtkPNGWriter * pngWriter;
+    vtkActor *                      actor;
+    vtkCamera *                     camera;
+    vtkDataSetMapper *              mapper;
+    vtkPNGWriter *                  pngWriter;
+    vtkXMLUnstructuredGridReader *  reader;
+    vtkRenderer *                   renderer;
+    vtkRenderWindow *               renderWin;
+
+    // member functions
+    bool capture(const std::string & filename);
+    void setCameraPosition( float phi, float theta);
 };
 
 #endif
