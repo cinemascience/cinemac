@@ -10,7 +10,7 @@
 #include <vtkRenderer.h>
 #include <vtkRenderWindow.h>
 // #include <vtkRenderWindowInteractor.h>
-#include <vtkXMLUnstructuredGridReader.h>
+#include <vtkXMLPUnstructuredGridReader.h>
 #include <vtkRendererCollection.h>
 
 bool CinDBWriter::write()

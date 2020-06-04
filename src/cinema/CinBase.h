@@ -17,9 +17,9 @@ class CinBase {
     }
 
     private:
-    static int NextID;
-    static int NextIDStringWidth;
-    static std::string NextIDString;
+    static int          NextID;
+    static std::string  NextIDString;
+    static int          NextIDStringWidth;
 
     static int GetNextID()
     {
@@ -32,7 +32,6 @@ class CinBase {
 
         return NextID;
     }
-
 
 };
 

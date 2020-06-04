@@ -11,8 +11,7 @@ int main()
     CinDBWriter writer("example.cdb");
 
     // set the input file 
-    // writer.setInputFile("some.vtu");
-    writer.setInputFile("/Users/dhr/LANL/data/hacc/halo_hacc/results/extracted/extracted_8.vtu");
+    writer.setInputFile("some.pvtu");
 
     // set camera positions 
     writer.addCameraPosition(  0.0, 45.0);
