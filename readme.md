@@ -1,5 +1,7 @@
 # cinemac: C++ cinema library
 
+**This is under development** and has not been released yet. Use at your own risk.
+
 This is the repository for the `cinemac` library, a library of C++ based capabilities for Cinema.
 
 ## build instructions
