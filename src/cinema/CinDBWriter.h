@@ -1,7 +1,7 @@
 #include "CinBase.h"
 #include <vector>
 #include <vtkUnstructuredGrid.h>
-#include <vtkXMLUnstructuredGridReader.h>
+#include <vtkXMLPUnstructuredGridReader.h>
 #include <vtkRenderWindow.h>
 #include <vtkSmartPointer.h>
 #include <vtkDataSetMapper.h>
@@ -27,13 +27,13 @@ class CinDBWriter : public CinBase
         this->width     = 640;
         this->height    = 480;
         this->input     = 0;
-        this->reader    = vtkXMLUnstructuredGridReader::New(); 
+        this->reader    = vtkXMLPUnstructuredGridReader::New(); 
         this->mapper    = vtkDataSetMapper::New();
         this->actor     = vtkActor::New();
         this->renderer  = vtkRenderer::New();
         this->renderWin = vtkRenderWindow::New();
         this->camera    = vtkCamera::New();
-        this->pngWriter             = vtkPNGWriter::New();
+        this->pngWriter = vtkPNGWriter::New();
 
         // state
         this->loaded = false;
@@ -48,6 +48,14 @@ class CinDBWriter : public CinBase
     {
         bool result = true;
         this->input = data;
+
+        return result;
+    }
+
+    bool addTimestep( float ts )
+    {
+        bool result = true;
+        this->timesteps.push_back(ts);
 
         return result;
     }
@@ -73,6 +81,7 @@ class CinDBWriter : public CinBase
     std::string             path;
     std::vector<float>      phi;
     std::vector<float>      theta;
+    std::vector<float>      timesteps;
     int                     width;
 
     // pipeline
@@ -80,7 +89,7 @@ class CinDBWriter : public CinBase
     vtkCamera *                     camera;
     vtkDataSetMapper *              mapper;
     vtkPNGWriter *                  pngWriter;
-    vtkXMLUnstructuredGridReader *  reader;
+    vtkXMLPUnstructuredGridReader * reader;
     vtkRenderer *                   renderer;
     vtkRenderWindow *               renderWin;
 

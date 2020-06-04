@@ -9,7 +9,6 @@
 #include <vtkProperty.h>
 #include <vtkRenderer.h>
 #include <vtkRenderWindow.h>
-// #include <vtkRenderWindowInteractor.h>
 #include <vtkXMLPUnstructuredGridReader.h>
 #include <vtkRendererCollection.h>
 
@@ -27,24 +26,28 @@ bool CinDBWriter::write()
     csvfile.open( csvpath.c_str() );
     if (csvfile.is_open())
     {
-        csvfile << "phi,theta,FILE" << std::endl;
-
-        auto ip = begin(this->phi);
-        auto it = begin(this->theta);
-        std::string imageName;
-        std::string imagePath;
-        while(ip != end(this->phi))
+        // header line
+        csvfile << "time,phi,theta,FILE" << std::endl;
+        for (auto its = begin(this->timesteps); its != end(this->timesteps); ++its)
         {
-            imageName = CinBase::GetNextIDString() + ".png";
-            imagePath = this->path + "/" + imageName;
-            csvfile << std::to_string(*ip) << "," << std::to_string(*it) << "," << imageName << std::endl;
+            auto ip = begin(this->phi);
+            auto it = begin(this->theta);
+            std::string imageName;
+            std::string imagePath;
+            while(ip != end(this->phi))
+            {
+                imageName = CinBase::GetNextIDString() + ".png";
+                imagePath = this->path + "/" + imageName;
+                csvfile << std::to_string(*its) << "," << std::to_string(*ip) << "," << 
+                           std::to_string(*it) << "," << imageName << std::endl;
 
-            this->setCameraPosition(*ip, *it);
-            this->capture(imagePath);
-            this->setCameraPosition(-*ip, -*it);
+                this->setCameraPosition(*ip, *it);
+                this->capture(imagePath);
+                this->setCameraPosition(-*ip, -*it);
 
-            ++ip;
-            ++it;
+                ++ip;
+                ++it;
+            }
         }
     } else {
         std::cout << "unable to open file: " << csvpath << std::endl;
@@ -69,6 +72,7 @@ bool CinDBWriter::load()
     //read all the data from the file
     this->reader->SetFileName(this->infile.c_str());
     this->reader->Update();
+    std::cout << "num timesteps: " << this->reader->GetNumberOfTimeSteps() << std::endl;
 
     // assemble the pipeline
     this->mapper->SetInputConnection(this->reader->GetOutputPort());
@@ -81,7 +85,6 @@ bool CinDBWriter::load()
     this->renderer->SetActiveCamera(this->camera);
 
     this->renderWin->AddRenderer(this->renderer);
-    // this->renderWinInteractor->SetRenderWindow(this->renderWin);
 
     //Add the actor to the scene
     renderer->AddActor(this->actor);

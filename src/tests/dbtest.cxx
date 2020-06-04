@@ -25,6 +25,11 @@ int main()
     writer.addCameraPosition( 80.0, 45.0);
     writer.addCameraPosition( 90.0, 45.0);
 
+    // add timesteps
+    writer.addTimestep( 1.0 );
+    writer.addTimestep( 2.0 );
+    writer.addTimestep( 3.0 );
+
     // write the database
     writer.write();
 
