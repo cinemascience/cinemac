@@ -1,6 +1,6 @@
-add_executable(dbcreate dbcreate.cxx) 
-target_link_libraries(dbcreate PUBLIC cinema)
-target_include_directories(dbcreate PUBLIC
+add_executable(dbtest dbtest.cxx) 
+target_link_libraries(dbtest PUBLIC cinema)
+target_include_directories(dbtest PUBLIC
                             "${PROJECT_SOURCE_DIR}/cinema"
                             )
 

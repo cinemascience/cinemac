@@ -16,7 +16,7 @@ The cmake build requires VTK, and will look for it. You may have to set that dir
     ccmake ../src -DCMAKE_INSTALL_PREFIX=/your/install/prefix
 ````
 
-Once this is done, you should be able to include and link to the installed library. For an example of how to use the libray, look at the contents of `tests/dbcreate.cxx`.
+Once this is done, you should be able to include and link to the installed library. For an example of how to use the libray, look at the contents of `tests/dbtest.cxx`.
 
 ## testing
 
@@ -24,7 +24,7 @@ Run the following to test:
 
 ````
     cd build
-    ./tests/dbcreate
+    ./tests/dbtest
 ````
 
 This will create a directory in the `build` area with the following contents:
