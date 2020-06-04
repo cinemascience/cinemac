@@ -25,19 +25,35 @@ Run the following to test:
     ./tests/dbcreate
 ````
 
-This should create a directory in the `build` area with the following contents (there will be no images):
+This will create a directory in the `build` area with the following contents:
 
 ````
-    test.cdb/
+    example.cdb/
         data.csv
+        0001.png
+        0002.png
+        0003.png
+        0004.png
+        0005.png
+        0006.png
+        0007.png
+        0008.png
+        0009.png
+        0010.png
 ````
 
 The `data.csv` file should look like this:
 
 ````
 phi,theta,FILE
-0,0.5,0.png
-10,10.5,1.png
-20,20.5,2.png
-30,30.5,3.png
+0,45,0001.png
+10,45,0002.png
+20,45,0003.png
+30,45,0004.png
+40,45,0005.png
+50,45,0006.png
+60,45,0007.png
+70,45,0008.png
+80,45,0009.png
+90,45,0010.png
 ````
