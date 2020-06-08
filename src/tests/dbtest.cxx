@@ -5,13 +5,13 @@ int CinBase::NextID = -1;
 int CinBase::NextIDStringWidth = 4;
 std::string CinBase::NextIDString = "none";
 
-int main() 
+int main(int argc, char *argv[]) 
 {
     // create a writer
     CinDBWriter writer("example.cdb");
 
     // set the input file 
-    writer.setInputFile("/home/pascal/projects/cinemac/src/tests/data/HACC_VTK_251_0.vtu");
+    writer.setInputFile(argv[1]);
     //writer.setInputFile("some.pvtu");
 
 
@@ -38,4 +38,4 @@ int main()
     return 1;
 }
 
-// ./dbtest 
+// ./dbtest /home/pascal/projects/cinemac/testdata/extracted.pvtu

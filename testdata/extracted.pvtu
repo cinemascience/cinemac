@@ -1,0 +1,16 @@
+<VTKFile type="PUnstructuredGrid" version="1.0" byte_order="LittleEndian" header_type="UInt64">
+  <PUnstructuredGrid GhostLevel="1">
+    <PPointData>
+      <PDataArray type="Float32" Name="x"/>
+      <PDataArray type="Float32" Name="y"/>
+      <PDataArray type="Float32" Name="z"/>
+      <PDataArray type="Float32" Name="uu"/>
+      <PDataArray type="Float32" Name="mu"/>
+      <PDataArray type="Float32" Name="rho"/>
+    </PPointData>
+    <PPoints>
+      <PDataArray type="Float64" Name="Points" NumberOfComponents="3"/>
+    </PPoints>
+    <Piece Source="extracted/extracted_8.vtu"/>
+  </PUnstructuredGrid>
+</VTKFile>
