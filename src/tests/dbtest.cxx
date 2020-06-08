@@ -1,9 +1,9 @@
-// #include <string>
-// #include <iostream>
-// #include <unistd.h>
-// #include <stdio.h>
 #include "CinBase.h"
 #include "CinDBWriter.h"
+
+int CinBase::NextID = -1;
+int CinBase::NextIDStringWidth = 4;
+std::string CinBase::NextIDString = "none";
 
 int main() 
 {
@@ -11,7 +11,9 @@ int main()
     CinDBWriter writer("example.cdb");
 
     // set the input file 
-    writer.setInputFile("some.pvtu");
+    writer.setInputFile("/home/pascal/projects/cinemac/src/tests/data/HACC_VTK_251_0.vtu");
+    //writer.setInputFile("some.pvtu");
+
 
     // set camera positions 
     writer.addCameraPosition(  0.0, 45.0);
@@ -27,11 +29,13 @@ int main()
 
     // add timesteps
     writer.addTimestep( 1.0 );
-    writer.addTimestep( 2.0 );
-    writer.addTimestep( 3.0 );
+    //writer.addTimestep( 2.0 );
+    //writer.addTimestep( 3.0 );
 
     // write the database
     writer.write();
 
     return 1;
 }
+
+// ./dbtest 

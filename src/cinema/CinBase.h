@@ -2,21 +2,21 @@
 #include <sstream>
 #include <string>
 #include <iostream>
+#include <string>
 
 #ifndef CINBASE_H
 #define CINBASE_H
 
-class CinBase {
-
-    public:
-
+class CinBase 
+{
+  public:
     static std::string& GetNextIDString()
     {
         GetNextID();
         return NextIDString;
     }
 
-    private:
+  private:
     static int          NextID;
     static std::string  NextIDString;
     static int          NextIDStringWidth;
@@ -32,7 +32,6 @@ class CinBase {
 
         return NextID;
     }
-
 };
 
 #endif

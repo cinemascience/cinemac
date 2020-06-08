@@ -1,19 +1,47 @@
-#include "CinBase.h"
 #include <vtkActor.h>
 #include <vtkCamera.h>
 #include <vtkDataSetMapper.h>
 #include <vtkRenderer.h>
+#include <vtkActor.h>
+#include <vtkCamera.h>
+#include <vtkDataSetMapper.h>
+#include <vtkRenderer.h>
+#include <vtkProperty.h>
+
+#include "CinBase.h"
 
 #ifndef CINPIPELINE_H
 #define CINPIPELINE_H
 
 class CinPipeline : public CinBase
 {
-    public:
+  public:
 
-    CinPipeline(const std::string& path);
+    CinPipeline(const std::string& path)
+    {
+        this->actor     = vtkActor::New();
+        this->camera    = vtkCamera::New();
+        this->mapper    = vtkDataSetMapper::New();
+        this->renderer  = vtkRenderer::New();
 
-    bool Execute();
+        // assemble the pipeline
+        this->mapper->ScalarVisibilityOff();
+
+        this->actor->SetMapper(this->mapper);
+        this->actor->GetProperty()->EdgeVisibilityOn();
+        this->actor->GetProperty()->SetLineWidth(2.0);
+
+        this->renderer->SetActiveCamera(this->camera);
+
+        renderer->AddActor(this->actor);
+        renderer->ResetCamera();
+    }
+
+    bool Execute()
+    {
+        bool result = true;
+        return result;
+    }
 
     vtkRenderer * GetRenderer()
     {
@@ -25,7 +53,7 @@ class CinPipeline : public CinBase
         this->mapper->SetInputConnection(output);
     }
 
-    protected:
+  protected:
 
     // pipeline
     vtkActor *                      actor;
