@@ -1,3 +1,7 @@
+#include <stdio.h> 
+#include <stdlib.h> 
+#include<time.h> 
+
 #include "CinBase.h"
 #include "CinDBWriter.h"
 
@@ -11,8 +15,25 @@ int main(int argc, char *argv[])
     CinDBWriter writer("example.cdb");
 
     // set the input file 
-    writer.setInputFile(argv[1]);
+    //writer.setInputFile(argv[1]);
     //writer.setInputFile("some.pvtu");
+
+    std::vector<float> point_x, point_y, point_z;
+    int numPoints = 5000;
+    srand(time(0)); 
+	for (int i=0; i<numPoints/2; i++)
+	{
+		point_x.push_back(rand()%50);
+		point_y.push_back(rand()%50);
+		point_z.push_back(rand()%50);
+	}
+    for (int i=numPoints/2; i<numPoints; i++)
+	{
+		point_x.push_back(rand()%50);
+		point_y.push_back(rand()%50);
+		point_z.push_back(rand()%50 + 100);
+	}
+    writer.setDataPoints(point_x, point_y, point_z);
 
 
     // set camera positions 
@@ -38,4 +59,4 @@ int main(int argc, char *argv[])
     return 1;
 }
 
-// ./dbtest /home/pascal/projects/cinemac/testdata/extracted.pvtu
+// tests/dbtest /home/pascal/projects/cinemac/testdata/extracted.pvtu

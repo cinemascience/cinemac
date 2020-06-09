@@ -4,6 +4,7 @@
 #include <fstream>
 #include <vector>
 
+
 #include <vtkActor.h>
 #include <vtkCamera.h>
 #include <vtkDataSetMapper.h>
@@ -26,6 +27,7 @@
 #include <vtkPNGWriter.h>
 
 #include "CinBase.h"
+#include "vtkStructures/unstructuredGrid.h"
 
 #ifndef CINDBWRITER_H
 #define CINDBWRITER_H
@@ -53,6 +55,8 @@ class CinDBWriter : public CinBase
 
         // state
         this->loaded = false;
+
+        this->infile = "";
     }
 
     void setInputFile( const std::string & filename )
@@ -90,13 +94,22 @@ class CinDBWriter : public CinBase
         // std::cout << "Loading data ..." << std::endl;
         // std::cout << "   " << this->infile << std::endl;
 
-        //read all the data from the file
-        this->reader->SetFileName(this->infile.c_str());
-        this->reader->Update();
-        // std::cout << "num timesteps: " << this->reader->GetNumberOfTimeSteps() << std::endl;
+       
+
 
         // assemble the pipeline
-        this->mapper->SetInputConnection(this->reader->GetOutputPort());
+        if (infile != "")
+        {
+             //read all the data from the file
+            this->reader->SetFileName(this->infile.c_str());
+            this->reader->Update();
+            this->mapper->SetInputConnection(this->reader->GetOutputPort());
+        }
+        else
+        {
+            this->mapper->SetInputData( pointData.uGrid );
+        }
+        
         this->mapper->ScalarVisibilityOff();
 
         this->actor->SetMapper(this->mapper);
@@ -165,6 +178,19 @@ class CinDBWriter : public CinBase
         return result;
     }
 
+    void setDataPoints(std::vector<float>_x, std::vector<float>_y, std::vector<float>_z)
+    {
+        std::vector<float> points;
+        int numPoints = _x.size();
+		for (size_t i=0; i<numPoints ; i++)
+		{
+			points.push_back(_x[i]);
+			points.push_back(_y[i]);
+			points.push_back(_z[i]);
+		}
+        pointData.setPoints(&points[0], numPoints, VTK_VERTEX);
+    }
+
   protected:
 
     int                     height;
@@ -177,6 +203,8 @@ class CinDBWriter : public CinBase
     std::vector<float>      timesteps;
     int                     width;
 
+    UnstructuredGrid pointData;
+
     // pipeline
     vtkActor *                      actor;
     vtkCamera *                     camera;
@@ -186,6 +214,8 @@ class CinDBWriter : public CinBase
     vtkRenderer *                   renderer;
     vtkRenderWindow *               renderWin;
 
+
+    
 
     // member functions
     bool capture(const std::string & filename)
