@@ -50,8 +50,6 @@ int main(int argc, char *argv[])
 
     // add timesteps
     writer.addTimestep( 1.0 );
-    //writer.addTimestep( 2.0 );
-    //writer.addTimestep( 3.0 );
 
     // write the database
     writer.write();

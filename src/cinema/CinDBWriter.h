@@ -114,7 +114,8 @@ class CinDBWriter : public CinBase
 
         this->actor->SetMapper(this->mapper);
         this->actor->GetProperty()->EdgeVisibilityOn();
-        this->actor->GetProperty()->SetLineWidth(2.0);
+        this->actor->GetProperty()->SetPointSize(2.0);
+        this->actor->GetProperty()->SetColor(0,0,1);
 
         this->renderer->SetActiveCamera(this->camera);
         this->renderWin->SetOffScreenRendering(1);       // for offscreen
@@ -122,6 +123,7 @@ class CinDBWriter : public CinBase
 
         //Add the actor to the scene
         renderer->AddActor(this->actor);
+        //renderer->SetBackground(.0,.5,1.0);  // does nothing when enabled!!!
         renderer->ResetCamera();
 
         //Render and interact
