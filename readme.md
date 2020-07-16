@@ -4,6 +4,13 @@
 
 This is the repository for the `cinemac` library, a library of C++ based capabilities for Cinema.
 
+
+## setup environment
+
+````
+    source env/darwin.sh
+````
+
 ## build instructions
 
 The cmake build requires VTK, and will look for it. You may have to set that directory.
@@ -11,9 +18,10 @@ The cmake build requires VTK, and will look for it. You may have to set that dir
 ````
     git clone git@github.com:cinemascience/cinemac.git
     cd cinemac
+    git checkout hacc_cinema
     mkdir build
     cd build
-    cmake ../src -DCMAKE_INSTALL_PREFIX=/your/install/prefix
+    ccmake ../src/
 ````
 
 Once this is done, you should be able to include and link to the installed library. For an example of how to use the libray, look at the contents of `tests/dbtest.cxx`.
@@ -50,7 +58,7 @@ This will create a directory in the `build` area with the following contents:
 The `data.csv` file should look like this:
 
 ````
-time,phi,theta,FILE
+phi,theta,FILE
 1.000000,0.000000,45.000000,0000.png
 1.000000,10.000000,45.000000,0001.png
 1.000000,20.000000,45.000000,0002.png
