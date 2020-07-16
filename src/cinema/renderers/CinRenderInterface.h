@@ -52,6 +52,11 @@ void CinRenderInterface::setWindowSize(int _w, int _h)
 void CinRenderInterface::setCameraPositions(std::vector< std::pair <float,float> > _phi_theta)
 {
 	phi_theta =_phi_theta;
+
+	// Create space to store image
+	imgs.resize( phi_theta.size() );
+	for (int i=0; i<phi_theta.size(); i++)
+		imgs[i].createImage(height, width);
 }
 
 

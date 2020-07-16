@@ -93,12 +93,6 @@ void CinVTKRenderer::setCameraPosition(float phi, float theta)
 
 void CinVTKRenderer::init()
 {
-	// Create space to store image
-	imgs.resize( phi_theta.size() );
-	for (int i=0; i<phi_theta.size(); i++)
-		imgs[i].createImage(height, width);
-
-
 	// Set up camera
 	pointData.setPoints(&points[0], points.size()/3, VTK_VERTEX);
 
