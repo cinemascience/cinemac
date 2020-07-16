@@ -65,12 +65,12 @@ inline void CinDatabase::createCinemaDB(int width, int height)
 		int count = 0;
 		for (auto pt=phi_theta.begin(); pt<phi_theta.end(); pt++)
 		{
-			// Render the image
+			// Save the image to disk
 			std::string imageName = path + "/image/" + "_" + std::to_string((*pt).first) + "_" + std::to_string((*pt).second) + "_img.png";
-			cinRenderer->imgs[count].outputPNG(imageName);
+			cinRenderer->createPNG(imageName, count);
 
 			// Fill in row in csv file
-			std::string imagePath = imageName + ".ppm";
+			std::string imagePath = imageName;
 			csvfile << std::to_string((*pt).first) << "," 
 					<< std::to_string((*pt).second) << "," 
 					<< imageName << std::endl;

@@ -54,7 +54,7 @@ inline void Image::outputOpaquePPM(std::string filename)
         return;
     }
 
-    std::ofstream outputFile( (filename + ".ppm").c_str(), std::ios::out | std::ios::binary);
+    std::ofstream outputFile( filename.c_str(), std::ios::out | std::ios::binary);
     outputFile <<  "P6\n" << width << "\n" << height << "\n" << 255 << "\n";
     
     for (int y=0; y<height; ++y){
@@ -103,5 +103,10 @@ inline void Image::outputPNG(std::string filename)
             image[4 * width * y + 4 * x + 3] = 255;
         }
 
-    encodeOneStep(filename.c_str(), image, width, height);
+
+    unsigned error = lodepng::encode(filename, image, width, height);
+
+    if (error) 
+        std::cout << "encoder error " << error << ": "<< lodepng_error_text(error) << std::endl;
+    //encodeOneStep(filename.c_str(), image, width, height);
 }

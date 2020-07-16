@@ -93,9 +93,10 @@ void CinVTKRenderer::setCameraPosition(float phi, float theta)
 
 void CinVTKRenderer::init()
 {
-	// Set up camera
+	// Set the points to use
 	pointData.setPoints(&points[0], points.size()/3, VTK_VERTEX);
 
+	// Set up renderer
 	mapper->SetInputData( pointData.uGrid );
 	mapper->ScalarVisibilityOff();
 
@@ -126,10 +127,12 @@ void CinVTKRenderer::render()
 		setCameraPosition((*_pt).first, (*_pt).second);
 		renderWin->Render();
 		
-		// TODO:Slow and needs to change!!!
+		// Grab the rendered buffer and copy to an array
 		vtkSmartPointer<vtkFloatArray> buffer = vtkSmartPointer<vtkFloatArray>::New();
 		renderWin->GetRGBAPixelData(0, 0, width-1, height-1, 1, buffer);
 
+		// Copy from the vtkFloatArray to image
+		// TODO: Probably Slow and needs to change!!!
 		for (size_t y=0; y<height; y++)
 			for (size_t x=0; x<width; x++)
 			{
