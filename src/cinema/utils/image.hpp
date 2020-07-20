@@ -5,7 +5,7 @@
 #include <fstream>
 #include <iostream>
 #include <algorithm>
-#include <malloc.h>
+#include <malloc/malloc.h>
 #include <string.h>
 
 #include "lodepng.h"

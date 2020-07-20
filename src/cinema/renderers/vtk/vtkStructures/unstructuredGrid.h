@@ -5,7 +5,7 @@
 #include <sstream>
 
 
-#include <mpi.h>
+//#include <mpi.h>
 
 #include <vtkSmartPointer.h>
 #include <vtkDataSet.h>
@@ -14,9 +14,9 @@
 #include <vtkSOADataArrayTemplate.h>
 #include <vtkCellArray.h>
 #include <vtkPoints.h>
-#include <vtkMPIController.h>
+//#include <vtkMPIController.h>
 #include <vtkXMLPUnstructuredGridWriter.h>
-#include <vtkMPIController.h>
+//#include <vtkMPIController.h>
 #include <vtkPointData.h>
 
 
