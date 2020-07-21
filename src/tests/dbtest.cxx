@@ -1,17 +1,27 @@
 // #include <string>
-// #include <iostream>
+#include <iostream>
 // #include <unistd.h>
 // #include <stdio.h>
 #include "CinBase.h"
 #include "CinDBWriter.h"
 
-int main() 
+int main(int argc, char **argv) 
 {
     // create a writer
     CinDBWriter writer("example.cdb");
 
     // set the input file 
     writer.setInputFile("some.pvtu");
+    writer.setInputFile("/Users/dhr/LANL/data/hacc/halo_hacc/results/extracted.pvtu");
+
+    if (argc == 3) {
+        writer.setPath(argv[1]);
+        writer.setInputFile(argv[2]);
+    } else {
+        std::cout << "Usage:" << std::endl;
+        std::cout << "    dbtest <output database> <input data file>" << std::endl;
+        exit(1);
+    }
 
     // set camera positions 
     writer.addCameraPosition(  0.0, 45.0);

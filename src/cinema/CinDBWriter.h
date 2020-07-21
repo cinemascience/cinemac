@@ -39,6 +39,11 @@ class CinDBWriter : public CinBase
         this->loaded = false;
     }
 
+    void setPath( const std::string & path )
+    {
+        this->path = path;
+    }
+
     void setInputFile( const std::string & filename )
     {
         this->infile = filename;
