@@ -8,7 +8,9 @@
 #include <malloc.h>
 #include <string.h>
 
-#include "lodepng.h"
+#define STBI_MSC_SECURE_CRT
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
 
 struct Image
 {
@@ -76,37 +78,20 @@ inline void Image::outputOpaquePPM(std::string filename)
 
 
 
-inline void encodeOneStep(const char* filename, std::vector<unsigned char>& image, unsigned width, unsigned height) 
-{
-    //Encode the image
-    unsigned error = lodepng::encode(filename, image, width, height);
-
-     //if there's an error, display it
-    if (error) 
-        std::cout << "encoder error " << error << ": "<< lodepng_error_text(error) << std::endl;
-}
-
-
 inline void Image::outputPNG(std::string filename)
 {
-    std::vector<unsigned char> image;
-    image.resize(width * height * 4);
-
+    uint8_t* pixels = new uint8_t[width * height * 4];
     for (unsigned y=0; y<height; y++)
         for (unsigned x=0; x<width; x++) 
         {
             int index = (y * width * 4) + x*4;
 
-            image[4 * width * y + 4 * x + 0] = std::min(data[index+0] , 1.0f) * 255;
-            image[4 * width * y + 4 * x + 1] = std::min(data[index+1] , 1.0f) * 255;
-            image[4 * width * y + 4 * x + 2] = std::min(data[index+2] , 1.0f) * 255;
-            image[4 * width * y + 4 * x + 3] = 255;
+            pixels[4 * width * y + 4 * x + 0] = std::min(data[index+0] , 1.0f) * 255;
+            pixels[4 * width * y + 4 * x + 1] = std::min(data[index+1] , 1.0f) * 255;
+            pixels[4 * width * y + 4 * x + 2] = std::min(data[index+2] , 1.0f) * 255;
+            pixels[4 * width * y + 4 * x + 3] = std::min(data[index+3] , 1.0f) * 255;
         }
 
-
-    unsigned error = lodepng::encode(filename, image, width, height);
-
-    if (error) 
-        std::cout << "encoder error " << error << ": "<< lodepng_error_text(error) << std::endl;
-    //encodeOneStep(filename.c_str(), image, width, height);
+    stbi_write_png(filename.c_str(), width, height, 4, pixels, width * 4);
+    delete[] pixels;
 }

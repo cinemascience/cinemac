@@ -14,12 +14,7 @@ include_directories(${CMAKE_SOURCE_DIR})
 include_directories(${CMAKE_SOURCE_DIR}/cinema)
 include_directories(${CMAKE_SOURCE_DIR}/cinema/renderers)
 include_directories(${CMAKE_SOURCE_DIR}/cinema/utils)
-include_directories(${CMAKE_SOURCE_DIR}/cinema/utils/lodepng)
 
-
-#libraries
-add_library(lodePng SHARED cinema/utils/lodepng/lodepng.h cinema/utils/lodepng/lodepng.cpp)
-set (PRJ_LIBS ${PRJ_LIBS} lodePng)
 
 
 option(RENDERER_VTK "Enables the VTK renderer" ON)
