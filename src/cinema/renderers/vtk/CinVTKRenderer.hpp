@@ -117,7 +117,6 @@ void CinVTKRenderer::init()
 }
 
 
-
 void CinVTKRenderer::render()
 {
 	int i = 0;
@@ -130,7 +129,7 @@ void CinVTKRenderer::render()
 		// Grab the rendered buffer and copy to an array
 		vtkSmartPointer<vtkFloatArray> buffer = vtkSmartPointer<vtkFloatArray>::New();
 		renderWin->GetRGBAPixelData(0, 0, width-1, height-1, 1, buffer);
-s
+
 		// Copy from the vtkFloatArray to image
 		// TODO: Probably Slow and needs to change!!!
 		for (size_t y=0; y<height; y++)
@@ -146,6 +145,3 @@ s
 		i++;
 	}
 }
-
-
-

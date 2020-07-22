@@ -1,3 +1,5 @@
+#pragma once
+
 #include <string>
 #include <iomanip>
 #include <vector>
@@ -7,7 +9,6 @@
 #include "utils.hpp"
 #include "CinRendererFactory.h"
 
-#pragma once
 
 
 class CinDatabase
