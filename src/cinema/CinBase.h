@@ -16,6 +16,11 @@ class CinBase {
         return NextIDString;
     }
 
+    static void SetNextIDStringWidth( int w )
+    {
+        NextIDStringWidth = w;
+    }
+
     private:
     static int          NextID;
     static std::string  NextIDString;

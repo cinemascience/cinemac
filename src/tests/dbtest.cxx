@@ -12,7 +12,6 @@ int main(int argc, char **argv)
 
     // set the input file 
     writer.setInputFile("some.pvtu");
-    writer.setInputFile("/Users/dhr/LANL/data/hacc/halo_hacc/results/extracted.pvtu");
 
     if (argc == 3) {
         writer.setPath(argv[1]);

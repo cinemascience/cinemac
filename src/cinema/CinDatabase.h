@@ -1,7 +1,9 @@
 #include "CinBase.h"
+#include <vector>
 #include <string>
 #include <iomanip>
 #include <sstream>
+#include <map>
 
 #ifndef CINDATABASE_H
 #define CINDATABASE_H
@@ -15,7 +17,6 @@ class CinDatabase : public CinBase
     void setPath( std::string pathstring )
     {
         this->path = pathstring; 
-        this->datafilepath = this->path + "/" + CinDatabase::DataFileName;
         
     }
 
@@ -24,30 +25,54 @@ class CinDatabase : public CinBase
         return this->path;
     }
 
-    const std::string & getDataFilePath()
+    bool addParameter( const std::string &p )
     {
-        return this->datafilepath;
+        bool result;
+
+        if (std::find(this->parameters.begin(), this->parameters.end(), p) != this->parameters.end())
+        {
+            // this parameter exists 
+            result = false;
+        } else {
+            result = true;
+            this->parameters.push_back(p);
+        }
+
+        return result;
+    } 
+
+    const std::vector<std::string> & getParameters()
+    {
+        return this->parameters;
     }
 
-    std::string getNextArtifactIDString()
+    int addArtifact( const std::map<std::string, std::string> & values )
     {
-        ++(this->nextArtifactID);
+        int id = CinDatabase::PARAMETER_DOES_NOT_EXIST; 
+        // TODO: verify that there are no illegal parameters in the values list
 
-        std::ostringstream ss;
-        ss << std::setw( this->artifactIDPadding ) << std::setfill( '0' ) << this->nextArtifactID; 
+        id = this->artifacts.size();
+        this->artifacts[id] = values;
 
-        return ss.str();
+        return id;
     }
+
+    bool getArtifact( int id, std::map<std::string, std::string> & results);
+
+    int getNumArtifacts()
+    {
+        return this->artifacts.size();
+    }
+
+    void debugPrint();
+
+    enum Errors {PARAMETER_DOES_NOT_EXIST=0}; 
 
     private:
 
     std::string path;
-    std::string datafilepath;
-    int         nextArtifactID;
-    int         artifactIDPadding;
-
-    // class statics
-    static std::string DataFileName;
+    std::vector<std::string> parameters;
+    std::map<int, std::map< std::string, std::string >> artifacts;
 
 
 };
