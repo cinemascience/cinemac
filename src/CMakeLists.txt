@@ -15,7 +15,25 @@ include_directories(${CMAKE_SOURCE_DIR}/cinema)
 include_directories(${CMAKE_SOURCE_DIR}/cinema/renderers)
 include_directories(${CMAKE_SOURCE_DIR}/cinema/utils)
 
+set(CMAKE_CXX_FLAGS "-std=c++17")
 
+
+#libraries
+add_library(lodePng SHARED cinema/utils/lodepng/lodepng.h cinema/utils/lodepng/lodepng.cpp)
+set (PRJ_LIBS ${PRJ_LIBS} lodePng)
+
+option(RENDERER_OSPRAY "Enables the OSPRay renderer" ON)
+    find_package(ospray 2.2.0 REQUIRED)
+    if (ospray_FOUND)
+        include(${OSPRAY_USE_FILE})
+        add_definitions(-DHAS_OSPRAY_RENDERER)
+        set (PRJ_LIBS ${PRJ_LIBS} ospray::ospray ospray::ospray_sdk) 
+        message("Found ospray!!!") 
+    else()
+        message(FATAL_ERROR "Could not find ospray!!!")
+    endif()
+    rkcommon_configure_build_type()
+endif()
 
 option(RENDERER_VTK "Enables the VTK renderer" ON)
 if (RENDERER_VTK)
