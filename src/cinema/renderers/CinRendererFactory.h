@@ -16,6 +16,10 @@ Authors:
   #include "vtk/CinVTKRenderer.hpp"
 #endif
 
+#ifdef HAS_OSPRAY_RENDERER
+  #include "ospray/CinOSPRayRenderer.hpp"
+#endif
+
 
 class CinRendererFactory
 {
