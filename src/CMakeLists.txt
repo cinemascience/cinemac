@@ -24,11 +24,12 @@ add_library(lodePng SHARED cinema/utils/lodepng/lodepng.h cinema/utils/lodepng/l
 set (PRJ_LIBS ${PRJ_LIBS} lodePng)
 
 option(RENDERER_OSPRAY "Enables the OSPRay renderer" ON)
+if (RENDERER_OSPRAY)
     find_package(ospray 2.2.0 REQUIRED)
     if (ospray_FOUND)
         include(${OSPRAY_USE_FILE})
         add_definitions(-DHAS_OSPRAY_RENDERER)
-        set (PRJ_LIBS ${PRJ_LIBS} ospray::ospray ospray::ospray_sdk) 
+        set (PRJ_LIBS ${PRJ_LIBS} ospray::ospray ospray::ospray_sdk ospray::ospray_testing) 
         message("Found ospray!!!") 
     else()
         message(FATAL_ERROR "Could not find ospray!!!")
