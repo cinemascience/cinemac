@@ -6,10 +6,10 @@
 #include <sstream>
 #include <utility> 
 
+#include <timer.hpp> 
 #include "utils.hpp"
+#include "log.hpp"
 #include "CinRendererFactory.h"
-
-
 
 class CinDatabase
 {
@@ -47,6 +47,9 @@ inline void CinDatabase::addCameraPosition(float phi, float theta)
 
 inline void CinDatabase::createCinemaDB(int width, int height)
 {
+	Timer clock;
+
+  clock.start("render");
 	// Set window size and angles for phi, theta
 	cinRenderer->setWindowSize(width, height);
 	cinRenderer->setCameraPositions(phi_theta);
@@ -54,6 +57,10 @@ inline void CinDatabase::createCinemaDB(int width, int height)
 	// Render the images
 	cinRenderer->init();
 	cinRenderer->render();
+  clock.stop("render");
+  debugLog << "Render: " << clock.getDuration("render") << " s" << std::endl;
+
+  clock.start("create_struc");
 
 	// Create the Cinema Database
 	std::ofstream csvfile;
@@ -67,14 +74,19 @@ inline void CinDatabase::createCinemaDB(int width, int height)
 		for (auto pt=phi_theta.begin(); pt<phi_theta.end(); pt++)
 		{
 			// Save the image to disk
-			std::string imageName = path + "/image/" + "_" + std::to_string((*pt).first) + "_" + std::to_string((*pt).second) + "_img.png";
+			std::string imageName = path + "/image/_" + std::to_string((*pt).first) + "_" + std::to_string((*pt).second) + "_img.png";
+			std::string imageDBName = "image/_" + std::to_string((*pt).first) + "_" + std::to_string((*pt).second) + "_img.png";
+		  clock.start("save-to-disk");
 			cinRenderer->createPNG(imageName, count);
+		  clock.stop("save-to-disk");
+		  	debugLog << " - save-to-disk: " << clock.getDuration("save-to-disk") << " s" << std::endl;
+
 
 			// Fill in row in csv file
 			std::string imagePath = imageName;
 			csvfile << std::to_string((*pt).first) << "," 
 					<< std::to_string((*pt).second) << "," 
-					<< imageName << std::endl;
+					<< imageDBName << std::endl;
 
 			++count;
 		}
@@ -84,7 +96,8 @@ inline void CinDatabase::createCinemaDB(int width, int height)
 		std::cout << "unable to open file: " << csvpath << std::endl;
 	}
 	csvfile.close();
-	
+  clock.stop("create_struc");
+  debugLog << "create_struc: " << clock.getDuration("create_struc") << " s" << std::endl;
 }
 
 

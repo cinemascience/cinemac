@@ -15,6 +15,7 @@ Authors:
 #include "image.hpp"
 
 
+
 class CinRenderInterface
 {
 	//
@@ -45,14 +46,14 @@ class CinRenderInterface
 };
 
 
-void CinRenderInterface::setWindowSize(int _w, int _h)
+inline void CinRenderInterface::setWindowSize(int _w, int _h)
 {
 	width = _w;
 	height = _h;
 }
 
 
-void CinRenderInterface::setCameraPositions(std::vector< std::pair <float,float> > _phi_theta)
+inline void CinRenderInterface::setCameraPositions(std::vector< std::pair <float,float> > _phi_theta)
 {
 	phi_theta =_phi_theta;
 
@@ -63,7 +64,7 @@ void CinRenderInterface::setCameraPositions(std::vector< std::pair <float,float>
 }
 
 
-void CinRenderInterface::setDataPoints(std::vector<float>_x, std::vector<float>_y, std::vector<float>_z)
+inline void CinRenderInterface::setDataPoints(std::vector<float>_x, std::vector<float>_y, std::vector<float>_z)
 {
 	int numPoints = _x.size();
 	for (size_t i=0; i<numPoints ; i++)
@@ -74,7 +75,7 @@ void CinRenderInterface::setDataPoints(std::vector<float>_x, std::vector<float>_
 	}
 }
 
-void CinRenderInterface::createPNG(std::string filename, int index)
+inline void CinRenderInterface::createPNG(std::string filename, int index)
 {
 	imgs[index].outputPNG(filename);
 }

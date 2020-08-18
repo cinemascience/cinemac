@@ -15,6 +15,7 @@ Authors:
 #include <iostream>
 #include <map>
 
+
 class Timer
 {
 	std::map< std::string, std::chrono::time_point<std::chrono::system_clock> > timers;		
@@ -44,10 +45,6 @@ inline int Timer::start(std::string timerName)
 	else
 	{
 		timers[timerName] = startTime;
-
-		// remove previous durarion
-		auto it=timers_duration.find(timerName);
-  		timers_duration.erase(it); 
 	}
 
 	return 1;
@@ -61,7 +58,6 @@ inline int Timer::stop(std::string timerName)
 		auto endTime = std::chrono::system_clock::now(); 
 		auto elapsed_time = endTime - timers[timerName];
 
-		//auto elapsed_seconds = std::chrono::duration_cast<std::chrono::seconds>(elapsed_time).count();
 		timers_duration.insert( std::pair<std::string,std::chrono::duration<double>>(timerName, elapsed_time) );
 		return 1;
 	}
@@ -81,7 +77,7 @@ inline double Timer::getDuration(std::string timerName)
 	}
 	else
 	{
-		std::cout << "Timer " << timerName << " does NOT exist!!!" << std::endl;
+		std::cout << "In Timer::getDuration, " << timerName << " does NOT exist!!! or did you call stop()?" << std::endl;
 		return -1;
 	}
 }

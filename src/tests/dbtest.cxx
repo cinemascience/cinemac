@@ -3,17 +3,34 @@
 #include <time.h> 
 
 #include "CinDatabase.hpp"
+#include "log.hpp"
+
+std::stringstream debugLog;
+
 
 int main(int argc, char *argv[]) 
 {
+    std::string filename;
+    std::string renderer = "VTK";
+    int width, height;
+    width =  512;
+    height = 512;
+
+    if (argc > 1)
+        filename = std::string(argv[1]);
+    else
+        filename = "cinemaTest";
+
+    debugLog << "Renderer: " << renderer << ", dims: " << width << " x " << height << " - filename: " << filename << std::endl;
+
     std::vector<float> point_x, point_y, point_z;
-    int numPoints = 50000;
+    int numPoints = 30000;
     srand(time(0)); 
 	for (int i=0; i<numPoints; i++)
 	{
-		point_x.push_back(rand()%100 - 50);
-		point_y.push_back(rand()%100 - 50);
-		point_z.push_back(rand()%100 - 50);
+		point_x.push_back(1500+rand()%100 - 50);
+		point_y.push_back(1500+rand()%100 - 50);
+		point_z.push_back(1500+rand()%100 - 50);
 	}
     // for (int i=numPoints/2; i<numPoints; i++)
 	// {
@@ -25,26 +42,20 @@ int main(int argc, char *argv[])
 
 
     // create a writer
-    CinDatabase writer("example.cdb", "VTK");
+    CinDatabase writer(filename + ".cdb", renderer);
 
     writer.cinRenderer->setDataPoints(point_x, point_y, point_z);
 
     // set camera positions 
-    writer.addCameraPosition(  0.0, 45.0);
-    writer.addCameraPosition( 10.0, 45.0);
-    writer.addCameraPosition( 20.0, 45.0);
-    writer.addCameraPosition( 30.0, 45.0);
-    writer.addCameraPosition( 40.0, 45.0);
-    writer.addCameraPosition( 50.0, 45.0);
-    writer.addCameraPosition( 60.0, 45.0);
-    writer.addCameraPosition( 70.0, 45.0);
-    writer.addCameraPosition( 80.0, 45.0);
-    writer.addCameraPosition( 90.0, 45.0);
+    for (float phi=0; phi<350; phi+=30)
+        for (float theta=0; theta<350; theta+=30) 
+          writer.addCameraPosition( phi,  theta);
 
     // write the database
-    writer.createCinemaDB(640, 480);
+    writer.createCinemaDB(width, height);
+
+    writeLog(filename, debugLog.str());
 
     return 1;
 }
 
-// tests/dbtest /home/pascal/projects/cinemac/testdata/extracted.pvtu

@@ -29,6 +29,9 @@
 #include <vtkPNGWriter.h>
 
 
+#include "timer.hpp"
+#include "utils.hpp"
+#include "log.hpp"
 #include "CinRenderInterface.h"
 #include "vtkStructures/unstructuredGrid.h"
 
@@ -63,7 +66,7 @@ class CinVTKRenderer : public CinRenderInterface
 };
 
 
-CinVTKRenderer::CinVTKRenderer()
+inline CinVTKRenderer::CinVTKRenderer()
 {
 	input     = 0;
 	reader    = vtkXMLPUnstructuredGridReader::New(); 
@@ -77,21 +80,21 @@ CinVTKRenderer::CinVTKRenderer()
 }
 
 
-void CinVTKRenderer::setData( vtkUnstructuredGrid * data )
+inline void CinVTKRenderer::setData( vtkUnstructuredGrid * data )
 {
 	input = data;
 }
 
 
 
-void CinVTKRenderer::setCameraPosition(float phi, float theta)
+inline void CinVTKRenderer::setCameraPosition(float phi, float theta)
 {
 	camera->Azimuth(phi);
 	camera->Elevation(theta);
 }
 
 
-void CinVTKRenderer::init()
+inline void CinVTKRenderer::init()
 {
 	// Set the points to use
 	pointData.setPoints(&points[0], points.size()/3, VTK_VERTEX);
@@ -102,8 +105,8 @@ void CinVTKRenderer::init()
 
 	actor->SetMapper(mapper);
 	actor->GetProperty()->EdgeVisibilityOn();
-	actor->GetProperty()->SetPointSize(2.0);
-	actor->GetProperty()->SetColor(0,0,1);
+	actor->GetProperty()->SetPointSize(1.0);
+	actor->GetProperty()->SetColor(1,1,1);
 
 	renderer->SetActiveCamera(camera);
 	renderWin->SetOffScreenRendering(1);       // for offscreen
@@ -117,31 +120,37 @@ void CinVTKRenderer::init()
 }
 
 
-void CinVTKRenderer::render()
+inline void CinVTKRenderer::render()
 {
+	Timer clock;
 	int i = 0;
 	for (auto _pt=phi_theta.begin(); _pt!=phi_theta.end(); _pt++)
 	{
+	  clock.start("render");
 		// Change camera position and render
 		setCameraPosition((*_pt).first, (*_pt).second);
 		renderWin->Render();
+	  clock.stop("render");
 		
+	  clock.start("read-buffer");
 		// Grab the rendered buffer and copy to an array
 		vtkSmartPointer<vtkFloatArray> buffer = vtkSmartPointer<vtkFloatArray>::New();
 		renderWin->GetRGBAPixelData(0, 0, width-1, height-1, 1, buffer);
 
-		// Copy from the vtkFloatArray to image
-		// TODO: Probably Slow and needs to change!!!
-		for (size_t y=0; y<height; y++)
-			for (size_t x=0; x<width; x++)
+		#pragma omp parallel for
+		for (unsigned y=0; y<height; y++)
+			for (unsigned x=0; x<width; x++) 
 			{
 				size_t index = (y * width *4) + x*4;
 
-				imgs[i].setPixel( x,y, 0, buffer->GetValue(index + 0) );
-				imgs[i].setPixel( x,y, 1, buffer->GetValue(index + 1) );
-				imgs[i].setPixel( x,y, 2, buffer->GetValue(index + 2) );
-				imgs[i].setPixel( x,y, 3, (float)1.0);
+				imgs[i].pixels[index + 0] = buffer->GetValue(index + 0) * 255;
+				imgs[i].pixels[index + 1] = buffer->GetValue(index + 1) * 255;
+				imgs[i].pixels[index + 2] = buffer->GetValue(index + 2) * 255;
+				imgs[i].pixels[index + 3] = 255;
 			}
 		i++;
+	  clock.stop("read-buffer");
+
+	  debugLog << " - VTK render took " << (*_pt).first << ", " << (*_pt).second << " took " << clock.getDuration("render") << " s and buffer capture took: " << clock.getDuration("read-buffer") << " s" << std::endl;
 	}
 }

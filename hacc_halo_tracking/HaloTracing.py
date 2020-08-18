@@ -16,6 +16,7 @@ class HaloTracing:
 		self.lineage = []
 		self.halo_timesteps = []
 		self.halo_tag_size_timestep = []
+		print("hihihi")
 
 
 	def __init__(self, halo_info_folder, cinema_folder, radius):
@@ -26,6 +27,7 @@ class HaloTracing:
 		self.lineage = []
 		self.halo_timesteps = []
 		self.halo_tag_size_timestep = []
+		print("hahaha")
 
 
 	def get_halo_information(self):
@@ -86,7 +88,10 @@ class HaloTracing:
 			ts_set.add(timestep)
    
 			timestep_tag = (filename.split('-')[1]).split('.')[0]
-			cinema_path = self.cinema_folder + "/m001-" + timestep_tag + ".cdb"
+			#cinema_path = self.cinema_folder + "/m001-" + timestep_tag + ".cdb"
+			print("timestep_tag: ", timestep_tag)
+			cinema_path = self.cinema_folder + "/_m000.mpicosmo." + timestep_tag + ".cdb"
+   			print("cinema_path: ", cinema_path)
 
 			row = self.read_info_file(filename)
 
