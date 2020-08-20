@@ -6,6 +6,18 @@
 
 int main(int argc, char *argv[]) 
 {
+    std::string rendererName = "VTK";
+
+    for (int i = 1; i < argc; ++i) {
+        std::string arg = argv[i];
+        if (arg == "-r" || arg == "--rendererName") {
+            rendererName = argv[++i];
+        }
+        else {
+            std::cerr << "Unknown argument: " << arg << std::endl;
+        }
+    }
+
     std::vector<float> point_x, point_y, point_z;
     int numPoints = 50000;
     srand(time(0)); 
@@ -25,7 +37,7 @@ int main(int argc, char *argv[])
 
 
     // create a writer
-    CinDatabase writer("example.cdb", "VTK");
+    CinDatabase writer("example.cdb", rendererName);
 
     writer.cinRenderer->setDataPoints(point_x, point_y, point_z);
 

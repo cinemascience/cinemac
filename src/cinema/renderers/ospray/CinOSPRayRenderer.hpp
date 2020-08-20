@@ -95,7 +95,7 @@ cpp::TransferFunction makeTransferFunction(const vec2f &valueRange, const std::s
 
 class CinOSPRayRenderer : public CinRenderInterface
 {
-	cpp::World world;
+	cpp::World* world;
 
 	vtkUnstructuredGrid *   input;
     bool                    loaded;
@@ -114,6 +114,7 @@ class CinOSPRayRenderer : public CinRenderInterface
 
   public:
 	CinOSPRayRenderer();
+	virtual ~CinOSPRayRenderer();
 
 	void setData( vtkUnstructuredGrid * data );
 	void setCameraPosition(float phi, float theta);
@@ -126,6 +127,7 @@ class CinOSPRayRenderer : public CinRenderInterface
 CinOSPRayRenderer::CinOSPRayRenderer()
 {
 	camera    = vtkCamera::New();
+	world = nullptr;
 
 	/*
 	input     = 0;
@@ -138,6 +140,12 @@ CinOSPRayRenderer::CinOSPRayRenderer()
 
 	pngWriter = vtkPNGWriter::New();
 	*/
+}
+
+CinOSPRayRenderer::~CinOSPRayRenderer()
+{
+	if (world)
+		delete world;
 }
 
 
@@ -156,17 +164,32 @@ void CinOSPRayRenderer::setCameraPosition(float phi, float theta)
 
 
 void CinOSPRayRenderer::init()
-{
+{	
+	OSPError init_error = ospInit();
+	if (init_error != OSP_NO_ERROR)
+	{
+		std::cerr << "Could not initialize OSPRay" << std::endl;
+		exit(0);
+	}
+	world = new cpp::World;
+
 	cpp::Volume volume("particle");
 
 	//AARONBAD -- there should be a better way of doing this than copying.
 	std::vector<vec3f> points_vec3f;
+	std::vector<float> radius_float;
+	std::vector<float> weight_float;
+
 	for(int i=0; i<points.size(); i+=3)
+	{
 		points_vec3f.push_back(vec3f(points[i], points[i+1], points[i+2]));
+		radius_float.push_back(1.f);
+		weight_float.push_back(1.f);
+	}
 
-	volume.setParam("particle.position", cpp::SharedData(points_vec3f)); //.size(), points_vec3f.data()) );
-
-    //volume.setParam("particle.radius", cpp::SharedData(points_vec3f.size(), radius.data()));
+	volume.setParam("particle.position", cpp::SharedData(points_vec3f));
+	volume.setParam("particle.radius", cpp::SharedData(radius_float));
+	volume.setParam("particle.weight", cpp::SharedData(weight_float));
 
 	//volume.setParam("particle.radius", cpp::Data(radius));
 	//volume.setParam("particle.weight", cpp::Data(weights));
@@ -185,13 +208,13 @@ void CinOSPRayRenderer::init()
 	cpp::Instance instance(group);
 	instance.commit();
 
-	world.setParam("instance", cpp::SharedData(instance));
+	world->setParam("instance", cpp::SharedData(instance));
 
 	cpp::Light light("ambient");
 	light.setParam("visible", false);
 	light.commit();
 
-	world.setParam("light", cpp::SharedData(light));
+	world->setParam("light", cpp::SharedData(light));
 
 
 #if 0
@@ -258,7 +281,7 @@ void CinOSPRayRenderer::render()
 		osprayCamera.commit();
 
     	framebuffer.clear();
-		auto future = framebuffer.renderFrame(renderer, osprayCamera, world);
+		auto future = framebuffer.renderFrame(renderer, osprayCamera, *world);
 		future.wait();
 
         float *fb = (float*)framebuffer.map(OSP_FB_COLOR);
