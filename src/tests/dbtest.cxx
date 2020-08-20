@@ -11,20 +11,32 @@ std::stringstream debugLog;
 
 int main(int argc, char *argv[]) 
 {
-    std::string filename;
-    std::string renderer = "VTK";
+
+    std::string filename = "cinemaTest";
+    std::string rendererName = "VTK";
     int width, height;
     width =  512;
     height = 512;
 
-    if (argc > 1)
-        filename = std::string(argv[1]);
-    else
-        filename = "cinemaTest";
+    for (int i = 1; i < argc; ++i) {
+        std::string arg = argv[i];
+        if (arg == "-r" || arg == "--rendererName") {
+            rendererName = argv[++i];
+        }
+        if (arg == "-i" || arg == "--imageSize") {
+            width = stoi(argv[++i]);
+            height = stoi(argv[++i]);
+        }
+        if (arg == "-f" || arg == "--filename") {
+            filename = argv[++i];
+        }
+        else {
+            std::cerr << "Unknown argument, assuming it is a filename): " << argv[i] << std::endl;
+            filename = argv[i];
+        }
+    }
 
     debugLog << "Renderer: " << renderer << ", dims: " << width << " x " << height << " - filename: " << filename << std::endl;
-
-    //writer.setInputFile(argv[1]);
 
     std::vector<float> point_x, point_y, point_z;
     int numPoints = 30000;
@@ -44,8 +56,12 @@ int main(int argc, char *argv[])
 
 
     // create a writer
+<<<<<<< HEAD
     CinDatabase writer(filename + ".cdb", renderer);
 
+=======
+    CinDatabase writer("example.cdb", rendererName);
+>>>>>>> ospray compiles and runs
 
     writer.cinRenderer->setDataPoints(point_x, point_y, point_z);
     //writer.cinRenderer->setOrigin(1500,1500,1500);
