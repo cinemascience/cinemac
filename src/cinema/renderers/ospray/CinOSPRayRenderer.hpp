@@ -5,6 +5,7 @@
 #include <sstream>
 #include <fstream>
 #include <vector>
+#include <limits>
 
 #include <memory>
 #include <iterator>
@@ -56,6 +57,30 @@ using namespace rkcommon::math;
 #include "CinRenderInterface.h"
 #include "image.hpp"
 
+void writePPM(char *fileName, const vec2i &size, const uint32_t *pixel)
+{
+  FILE *file = fopen(fileName, "wb");
+  if (file == nullptr) {
+    fprintf(stderr, "fopen('%s', 'wb') failed: %d", fileName, errno);
+    return;
+  }
+  fprintf(file, "P6\n%i %i\n255\n", size.x, size.y);
+  unsigned char *out = (unsigned char *)alloca(3 * size.x);
+  for (int y = 0; y < size.y; y++) {
+    const unsigned char *in =
+        (const unsigned char *)&pixel[(size.y - 1 - y) * size.x];
+    for (int x = 0; x < size.x; x++) {
+      out[3 * x + 0] = in[4 * x + 0];
+      out[3 * x + 1] = in[4 * x + 1];
+      out[3 * x + 2] = in[4 * x + 2];
+    }
+    fwrite(out, 3 * size.x, sizeof(char), file);
+  }
+  fprintf(file, "\n");
+  fclose(file);
+}
+
+
 cpp::TransferFunction makeTransferFunction(const vec2f &valueRange, const std::string tfColorMap = "jet", const std::string tfOpacityMap = "linear" )
 {
   cpp::TransferFunction transferFunction("piecewiseLinear");
@@ -96,6 +121,7 @@ cpp::TransferFunction makeTransferFunction(const vec2f &valueRange, const std::s
 class CinOSPRayRenderer : public CinRenderInterface
 {
 	cpp::World* world;
+	box3f bounds;
 
 	vtkUnstructuredGrid *   input;
     bool                    loaded;
@@ -180,11 +206,19 @@ void CinOSPRayRenderer::init()
 	std::vector<float> radius_float;
 	std::vector<float> weight_float;
 
-	for(int i=0; i<points.size(); i+=3)
+	bounds.lower = vec3f(std::numeric_limits<float>::max());
+	bounds.upper = vec3f(std::numeric_limits<float>::min());
+
+	uint32_t p=0;
+	for(int i=0; i<points.size(); i+=3, p++)
 	{
-		points_vec3f.push_back(vec3f(points[i], points[i+1], points[i+2]));
+		vec3f p = vec3f(points[i], points[i+1], points[i+2]);
+		points_vec3f.push_back(p);
 		radius_float.push_back(1.f);
 		weight_float.push_back(1.f);
+		bounds.lower = min(bounds.lower, p);
+		bounds.upper = max(bounds.upper, p);
+		//std::cerr << "point " << points_vec3f[p] << std::endl;
 	}
 
 	volume.setParam("particle.position", cpp::SharedData(points_vec3f));
@@ -193,8 +227,8 @@ void CinOSPRayRenderer::init()
 
 	//volume.setParam("particle.radius", cpp::Data(radius));
 	//volume.setParam("particle.weight", cpp::Data(weights));
-	//volume.setParam("clampMaxCumulativeValue", clampMaxCumulativeValue);
-	//volume.setParam("radiusSupportFactor", radiusSupportFactor);
+	volume.setParam("clampMaxCumulativeValue", 1.f);
+	volume.setParam("radiusSupportFactor", 5.f);
 	volume.commit();
 
 	cpp::VolumetricModel model(volume);
@@ -249,6 +283,11 @@ void CinOSPRayRenderer::render()
 {
 	cpp::Renderer renderer("pathtracer");
 	renderer.setParam("spp", 16);
+    //renderer.setParam("backgroundColor", 1.0f); // white, transparent
+
+    renderer.setParam("volumeSamplingRate", 0.5f);
+    renderer.setParam("densityScale", 100.f); 
+
 	renderer.commit();
 
 	//AARONBAD -- why is this not working?!!
@@ -266,6 +305,7 @@ void CinOSPRayRenderer::render()
 	{
 		// Change camera position and render
 		setCameraPosition((*_pt).first, (*_pt).second);
+		/*
 		double org[3], dir[3], up[3];
 		double fovy;
 		camera->GetEyePosition(org);
@@ -279,13 +319,39 @@ void CinOSPRayRenderer::render()
 		osprayCamera.setParam("up", vec3f(up[0], up[1], up[2]));
 		osprayCamera.setParam("fovy", float(fovy));
 		osprayCamera.commit();
+		*/
+
+		vec3f cam_pos{0.f, 0.f, 0.f};
+ 		vec3f cam_up{0.f, 1.f, 0.f};
+  		vec3f cam_view{0.1f, 0.f, 0.f};
+		float fovy = 60.f;
+
+		cam_pos = bounds.center();
+		cam_pos.x -= bounds.size().x * 2.f;
+
+		osprayCamera.setParam("aspect", imgSize.x / (float)imgSize.y);
+		osprayCamera.setParam("position", cam_pos);
+		osprayCamera.setParam("direction", cam_view);
+		osprayCamera.setParam("up", cam_up);
+		osprayCamera.setParam("fovy", float(fovy));
+		osprayCamera.commit();
+
 
     	framebuffer.clear();
 		auto future = framebuffer.renderFrame(renderer, osprayCamera, *world);
 		future.wait();
 
-        float *fb = (float*)framebuffer.map(OSP_FB_COLOR);
+		static int frame = 0;
+		uint32_t *fb = (uint32_t *)framebuffer.map(OSP_FB_COLOR);
+
+		char ppmfile[64];
+		std::sprintf(ppmfile, "ospray_frame_%d.ppm", frame);
+    	writePPM(ppmfile, imgSize, fb);
+		frame++;
+
         framebuffer.unmap(fb);
+
+		uint8_t *fb8 = (uint8_t *) fb;
 
 		// AARONBAD: can we just do a memcpy?
 		for (size_t y=0; y<height; y++)
@@ -293,9 +359,9 @@ void CinOSPRayRenderer::render()
 			{
 				size_t index = (y * width *4) + x*4;
 
-				imgs[i].setPixel( x,y, 0, fb[(x + y * width) * 4 + 0] );
-				imgs[i].setPixel( x,y, 1, fb[(x + y * width) * 4 + 1] );
-				imgs[i].setPixel( x,y, 2, fb[(x + y * width) * 4 + 2] );
+				imgs[i].setPixel( x,y, 0, float(fb8[(x + y * width) * 4 + 0]) / 255.f );
+				imgs[i].setPixel( x,y, 1, float(fb8[(x + y * width) * 4 + 1]) / 255.f );
+				imgs[i].setPixel( x,y, 2, float(fb8[(x + y * width) * 4 + 2]) / 255.f );
 				imgs[i].setPixel( x,y, 3, (float)1.0);
 			}
 		i++;
