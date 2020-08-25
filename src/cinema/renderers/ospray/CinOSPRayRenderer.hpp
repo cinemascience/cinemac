@@ -20,6 +20,7 @@
 #include "rkcommon/math/vec.h"
 #include "rkcommon/math/box.h"
 
+#include "ArcballCamera.h"
 
 #include <vtkCamera.h>
 
@@ -56,29 +57,6 @@ using namespace rkcommon::math;
 
 #include "CinRenderInterface.h"
 #include "image.hpp"
-
-void writePPM(char *fileName, const vec2i &size, const uint32_t *pixel)
-{
-  FILE *file = fopen(fileName, "wb");
-  if (file == nullptr) {
-    fprintf(stderr, "fopen('%s', 'wb') failed: %d", fileName, errno);
-    return;
-  }
-  fprintf(file, "P6\n%i %i\n255\n", size.x, size.y);
-  unsigned char *out = (unsigned char *)alloca(3 * size.x);
-  for (int y = 0; y < size.y; y++) {
-    const unsigned char *in =
-        (const unsigned char *)&pixel[(size.y - 1 - y) * size.x];
-    for (int x = 0; x < size.x; x++) {
-      out[3 * x + 0] = in[4 * x + 0];
-      out[3 * x + 1] = in[4 * x + 1];
-      out[3 * x + 2] = in[4 * x + 2];
-    }
-    fwrite(out, 3 * size.x, sizeof(char), file);
-  }
-  fprintf(file, "\n");
-  fclose(file);
-}
 
 
 cpp::TransferFunction makeTransferFunction(const vec2f &valueRange, const std::string tfColorMap = "jet", const std::string tfOpacityMap = "linear" )
@@ -212,12 +190,12 @@ void CinOSPRayRenderer::init()
 	uint32_t p=0;
 	for(int i=0; i<points.size(); i+=3, p++)
 	{
-		vec3f p = vec3f(points[i], points[i+1], points[i+2]);
+		vec3f point = vec3f(points[i], points[i+1], points[i+2]);
 		points_vec3f.push_back(p);
-		radius_float.push_back(1.f);
+		radius_float.push_back(1.0f);
 		weight_float.push_back(1.f);
-		bounds.lower = min(bounds.lower, p);
-		bounds.upper = max(bounds.upper, p);
+		bounds.lower = min(bounds.lower, point);
+		bounds.upper = max(bounds.upper, point);
 		//std::cerr << "point " << points_vec3f[p] << std::endl;
 	}
 
@@ -236,19 +214,20 @@ void CinOSPRayRenderer::init()
 	model.commit();
 
 	cpp::Group group;
-	group.setParam("volume", cpp::SharedData(model));
+	group.setParam("volume", cpp::CopiedData(model));
 	group.commit();
 
 	cpp::Instance instance(group);
 	instance.commit();
 
-	world->setParam("instance", cpp::SharedData(instance));
+	world->setParam("instance", cpp::CopiedData(instance));
 
 	cpp::Light light("ambient");
 	light.setParam("visible", false);
 	light.commit();
 
-	world->setParam("light", cpp::SharedData(light));
+	world->setParam("light", cpp::CopiedData(light));
+	world->commit();
 
 
 #if 0
@@ -281,7 +260,7 @@ void CinOSPRayRenderer::init()
 
 void CinOSPRayRenderer::render()
 {
-	cpp::Renderer renderer("pathtracer");
+	cpp::Renderer renderer("scivis");
 	renderer.setParam("spp", 16);
     //renderer.setParam("backgroundColor", 1.0f); // white, transparent
 
@@ -295,6 +274,8 @@ void CinOSPRayRenderer::render()
 	vec2i imgSize(width, height);
 
     ospray::cpp::Camera osprayCamera("perspective");
+	ArcballCamera arcball((const box3f &)bounds, imgSize);
+
 
     // create and setup framebuffer
     ospray::cpp::FrameBuffer framebuffer(
@@ -303,9 +284,9 @@ void CinOSPRayRenderer::render()
 	int i = 0;
 	for (auto _pt=phi_theta.begin(); _pt!=phi_theta.end(); _pt++)
 	{
-		// Change camera position and render
-		setCameraPosition((*_pt).first, (*_pt).second);
 		/*
+		// Change camera position and render
+		//setCameraPosition((*_pt).first, (*_pt).second);
 		double org[3], dir[3], up[3];
 		double fovy;
 		camera->GetEyePosition(org);
@@ -324,10 +305,13 @@ void CinOSPRayRenderer::render()
 		vec3f cam_pos{0.f, 0.f, 0.f};
  		vec3f cam_up{0.f, 1.f, 0.f};
   		vec3f cam_view{0.1f, 0.f, 0.f};
-		float fovy = 60.f;
-
+		float fovy = 45.f;
 		cam_pos = bounds.center();
-		cam_pos.x -= bounds.size().x * 2.f;
+		cam_pos.x -= bounds.size().x * .1f;
+
+		cam_pos = arcball.eyePos();
+		cam_up = arcball.upDir();
+		cam_view = arcball.lookDir();
 
 		osprayCamera.setParam("aspect", imgSize.x / (float)imgSize.y);
 		osprayCamera.setParam("position", cam_pos);
@@ -341,15 +325,15 @@ void CinOSPRayRenderer::render()
 		auto future = framebuffer.renderFrame(renderer, osprayCamera, *world);
 		future.wait();
 
-		static int frame = 0;
 		uint32_t *fb = (uint32_t *)framebuffer.map(OSP_FB_COLOR);
 
 		char ppmfile[64];
-		std::sprintf(ppmfile, "ospray_frame_%d.ppm", frame);
-    	writePPM(ppmfile, imgSize, fb);
-		frame++;
+		std::sprintf(ppmfile, "ospray_frame_%d.ppm", i);
 
-        framebuffer.unmap(fb);
+    	rkcommon::utility::writePPM(ppmfile, imgSize.x, imgSize.y, fb);
+		framebuffer.unmap(fb);
+
+		std::cerr << "wrote ppm" << std::endl;
 
 		uint8_t *fb8 = (uint8_t *) fb;
 
@@ -365,6 +349,7 @@ void CinOSPRayRenderer::render()
 				imgs[i].setPixel( x,y, 3, (float)1.0);
 			}
 		i++;
+
 	}
 }
 
