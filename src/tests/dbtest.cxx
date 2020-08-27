@@ -27,7 +27,11 @@ int main(int argc, char *argv[])
     // create a writer
     CinDatabase writer("example.cdb", "VTK");
 
+
     writer.cinRenderer->setDataPoints(point_x, point_y, point_z);
+    writer.cinRenderer->setOrigin(0,0,0);
+    writer.cinRenderer->setRegionRadius(50);
+
 
     // set camera positions 
     writer.addCameraPosition(  0.0, 45.0);

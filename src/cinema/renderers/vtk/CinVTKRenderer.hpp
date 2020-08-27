@@ -33,14 +33,18 @@
 #include "vtkStructures/unstructuredGrid.h"
 
 #include "image.hpp"
+#include "density.hpp"
 
 
 class CinVTKRenderer : public CinRenderInterface
 {
 	vtkUnstructuredGrid *   input;
     bool                    loaded;
+	float radius;
+	float center[3];
 
     UnstructuredGrid pointData;
+	DensityCompute densityBins;
 
     // pipeline
     vtkActor *                      actor;
@@ -57,6 +61,9 @@ class CinVTKRenderer : public CinRenderInterface
 
 	void setData( vtkUnstructuredGrid * data );
 	void setCameraPosition(float phi, float theta);
+
+	void setOrigin(float _x, float _y, float _z){ center[0]=_x; center[1]=_y; center[2]=_z; }
+    void setRegionRadius(float r){ radius = r; }
 
 	void init();
 	void render();
@@ -96,6 +103,44 @@ void CinVTKRenderer::init()
 	// Set the points to use
 	pointData.setPoints(&points[0], points.size()/3, VTK_VERTEX);
 
+	size_t numPoints = points.size()/3;
+	densityBins.init(20,20,20, center[0], center[1], center[z], radius);
+	densityBins.computeDensity( &points[0], numPoints);
+
+	
+
+	// Create the color map
+	vtkSmartPointer<vtkLookupTable> colorLookupTable = vtkSmartPointer<vtkLookupTable>::New();
+	colorLookupTable->SetTableRange(densityBins.getMinDensity(), densityBins.getMaxDensity());
+	colorLookupTable->Build();
+
+	// Generate the colors for each point based on the color map
+  	vtkSmartPointer<vtkUnsignedCharArray> colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
+  	colors->SetNumberOfComponents(3);
+  	colors->SetName("Colors");
+
+  	for(size_t i=0; i<numPoints; i++)
+    {
+		float _x, _y, _z;
+		_x = points[i*3 + 0];  
+        _y = points[i*3 + 1];  
+        _z = points[i*3 + 2];
+
+		double val = getDensity.getDensity(_x, _y, _z);
+		//std::cout << "val: " << val << std::endl;
+		
+		double dcolor[3];
+		colorLookupTable->GetColor(val, dcolor);
+		//std::cout << "dcolor: " << dcolor[0] << " " << dcolor[1] << " " << dcolor[2] << std::endl;
+		unsigned char color[3];
+		for(unsigned int j = 0; j < 3; j++)
+			color[j] = 255 * dcolor[j]/1.0;
+		//std::cout << "color: " << (int)color[0] << " " << (int)color[1] << " " << (int)color[2] << std::endl;
+		
+		colors->InsertNextTupleValue(color);
+    }
+  	pointData.uGrid->GetPointData()->AddArray(colors);
+
 	// Set up renderer
 	mapper->SetInputData( pointData.uGrid );
 	mapper->ScalarVisibilityOff();
@@ -103,7 +148,7 @@ void CinVTKRenderer::init()
 	actor->SetMapper(mapper);
 	actor->GetProperty()->EdgeVisibilityOn();
 	actor->GetProperty()->SetPointSize(2.0);
-	actor->GetProperty()->SetColor(0,0,1);
+	//actor->GetProperty()->SetColor(0,0,1);
 
 	renderer->SetActiveCamera(camera);
 	renderWin->SetOffScreenRendering(1);       // for offscreen
