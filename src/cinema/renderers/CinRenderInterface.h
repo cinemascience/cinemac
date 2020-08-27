@@ -24,6 +24,8 @@ class CinRenderInterface
   protected:
 	int height, width;
 	std::vector< std::pair <float,float> > phi_theta; 
+	float radius;
+	float center[3];
 
 	std::vector<float> points;		// we are only rendering points for now
 
@@ -34,6 +36,9 @@ class CinRenderInterface
 	CinRenderInterface(){};
 	CinRenderInterface(int w, int h):width(w),height(h){};
 	~CinRenderInterface(){};
+
+	void setOrigin(float _x, float _y, float _z){ center[0]=_x; center[1]=_y; center[2]=_z; }
+    void setRegionRadius(float r){ radius = r; }
 
 	void setWindowSize(int w, int h);
 	void setCameraPositions(std::vector< std::pair <float,float> > _phi_theta);

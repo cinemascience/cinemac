@@ -16,6 +16,7 @@
 #include <vtkXMLPUnstructuredGridReader.h>
 #include <vtkRendererCollection.h>
 #include <vtkUnstructuredGrid.h>
+#include <vtkUnsignedCharArray.h>
 #include <vtkXMLPUnstructuredGridReader.h>
 #include <vtkRenderWindow.h>
 #include <vtkSmartPointer.h>
@@ -24,6 +25,7 @@
 #include <vtkCamera.h>
 #include <vtkRenderer.h>
 #include <vtkRenderWindow.h>
+#include <vtkLookupTable.h>
 
 #include <vtkWindowToImageFilter.h>
 #include <vtkPNGWriter.h>
@@ -43,8 +45,6 @@ class CinVTKRenderer : public CinRenderInterface
 {
 	vtkUnstructuredGrid *   input;
     bool                    loaded;
-	float radius;
-	float center[3];
 
     UnstructuredGrid pointData;
 	DensityCompute densityBins;
@@ -64,9 +64,6 @@ class CinVTKRenderer : public CinRenderInterface
 
 	void setData( vtkUnstructuredGrid * data );
 	void setCameraPosition(float phi, float theta);
-
-	void setOrigin(float _x, float _y, float _z){ center[0]=_x; center[1]=_y; center[2]=_z; }
-    void setRegionRadius(float r){ radius = r; }
 
 	void init();
 	void render();
@@ -106,9 +103,12 @@ inline void CinVTKRenderer::init()
 	// Set the points to use
 	pointData.setPoints(&points[0], points.size()/3, VTK_VERTEX);
 
+	std::cout << "Compute desnsity: init" << std::endl;
 	size_t numPoints = points.size()/3;
-	densityBins.init(20,20,20, center[0], center[1], center[z], radius);
+	densityBins.init(20,20,20,  center[0],center[1],center[2], radius);
+	std::cout << "Compute desnsity: init done" << std::endl;
 	densityBins.computeDensity( &points[0], numPoints);
+	std::cout << "Compute desnsity done" << std::endl;
 
 	
 
@@ -129,24 +129,27 @@ inline void CinVTKRenderer::init()
         _y = points[i*3 + 1];  
         _z = points[i*3 + 2];
 
-		double val = getDensity.getDensity(_x, _y, _z);
+		double val = densityBins.getDensity(_x, _y, _z);
 		//std::cout << "val: " << val << std::endl;
 		
 		double dcolor[3];
 		colorLookupTable->GetColor(val, dcolor);
-		//std::cout << "dcolor: " << dcolor[0] << " " << dcolor[1] << " " << dcolor[2] << std::endl;
-		unsigned char color[3];
-		for(unsigned int j = 0; j < 3; j++)
-			color[j] = 255 * dcolor[j]/1.0;
-		//std::cout << "color: " << (int)color[0] << " " << (int)color[1] << " " << (int)color[2] << std::endl;
+		std::cout << "val:" << val << " dcolor: " << dcolor[0] << " " << dcolor[1] << " " << dcolor[2] << std::endl;
+
+		// unsigned char color[3];
+		// for(unsigned int j = 0; j < 3; j++)
+		// 	color[j] = 255 * dcolor[j]/1.0;
+		// //std::cout << "color: " << (int)color[0] << " " << (int)color[1] << " " << (int)color[2] << std::endl;
 		
-		colors->InsertNextTupleValue(color);
+		//colors->InsertNextTupleValue(color);
+		colors->InsertNextTuple(dcolor);
     }
-  	pointData.uGrid->GetPointData()->AddArray(colors);
+  	pointData.uGrid->GetPointData()->SetScalars(colors);
 
 	// Set up renderer
 	mapper->SetInputData( pointData.uGrid );
 	mapper->ScalarVisibilityOff();
+	mapper->SetLookupTable(colorLookupTable);
 
 	actor->SetMapper(mapper);
 	actor->GetProperty()->EdgeVisibilityOn();

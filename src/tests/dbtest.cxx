@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
 
 
     writer.cinRenderer->setDataPoints(point_x, point_y, point_z);
-    writer.cinRenderer->setOrigin(0,0,0);
+    writer.cinRenderer->setOrigin(1500,1500,1500);
     writer.cinRenderer->setRegionRadius(50);
 
 
