@@ -31,7 +31,6 @@ class CinRenderInterface
 	
   public:
 	
-
 	CinRenderInterface(){};
 	CinRenderInterface(int w, int h):width(w),height(h){};
 	~CinRenderInterface(){};

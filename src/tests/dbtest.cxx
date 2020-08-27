@@ -44,7 +44,11 @@ int main(int argc, char *argv[])
     // create a writer
     CinDatabase writer(filename + ".cdb", renderer);
 
+
     writer.cinRenderer->setDataPoints(point_x, point_y, point_z);
+    writer.cinRenderer->setOrigin(0,0,0);
+    writer.cinRenderer->setRegionRadius(50);
+
 
     // set camera positions 
     for (float phi=0; phi<350; phi+=30)
