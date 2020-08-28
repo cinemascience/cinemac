@@ -19,6 +19,7 @@
 #include <vtkUnsignedCharArray.h>
 #include <vtkXMLPUnstructuredGridReader.h>
 #include <vtkRenderWindow.h>
+#include <vtkScalarBarActor.h>
 #include <vtkSmartPointer.h>
 #include <vtkDataSetMapper.h>
 #include <vtkActor.h>
@@ -103,14 +104,11 @@ inline void CinVTKRenderer::init()
 	// Set the points to use
 	pointData.setPoints(&points[0], points.size()/3, VTK_VERTEX);
 
-	std::cout << "Compute desnsity: init" << std::endl;
 	size_t numPoints = points.size()/3;
-	densityBins.init(20,20,20,  center[0],center[1],center[2], radius);
-	std::cout << "Compute desnsity: init done" << std::endl;
+	//densityBins.init(20,20,20,  center[0],center[1],center[2], radius);
+	densityBins.init(20,20,20,  extents);
 	densityBins.computeDensity( &points[0], numPoints);
-	std::cout << "Compute desnsity done" << std::endl;
 
-	
 
 	// Create the color map
 	vtkSmartPointer<vtkLookupTable> colorLookupTable = vtkSmartPointer<vtkLookupTable>::New();
@@ -134,7 +132,7 @@ inline void CinVTKRenderer::init()
 		
 		double dcolor[3];
 		colorLookupTable->GetColor(val, dcolor);
-		std::cout << "val:" << val << " dcolor: " << dcolor[0] << " " << dcolor[1] << " " << dcolor[2] << std::endl;
+		//std::cout << "val:" << val << " dcolor: " << dcolor[0] << " " << dcolor[1] << " " << dcolor[2] << std::endl;
 
 		// unsigned char color[3];
 		// for(unsigned int j = 0; j < 3; j++)
@@ -142,19 +140,27 @@ inline void CinVTKRenderer::init()
 		// //std::cout << "color: " << (int)color[0] << " " << (int)color[1] << " " << (int)color[2] << std::endl;
 		
 		//colors->InsertNextTupleValue(color);
-		colors->InsertNextTuple(dcolor);
+		colors->InsertTuple(i,dcolor);
     }
   	pointData.uGrid->GetPointData()->SetScalars(colors);
 
+
 	// Set up renderer
 	mapper->SetInputData( pointData.uGrid );
-	mapper->ScalarVisibilityOff();
+	mapper->ScalarVisibilityOn();
+  	mapper->SetScalarModeToUsePointData();
+  	mapper->SetColorModeToMapScalars();
 	mapper->SetLookupTable(colorLookupTable);
 
 	actor->SetMapper(mapper);
 	actor->GetProperty()->EdgeVisibilityOn();
-	actor->GetProperty()->SetPointSize(1.0);
-	//actor->GetProperty()->SetColor(0,0,1);
+	actor->GetProperty()->SetPointSize(0.25);
+	actor->GetProperty()->SetOpacity(0.5);
+
+	vtkSmartPointer<vtkScalarBarActor> scalarBar = vtkSmartPointer<vtkScalarBarActor>::New();
+  	scalarBar->SetLookupTable(mapper->GetLookupTable());
+  	scalarBar->SetNumberOfLabels(4);
+	scalarBar->SetLookupTable( colorLookupTable );
 
 	renderer->SetActiveCamera(camera);
 	renderWin->SetOffScreenRendering(1);       // for offscreen
@@ -162,6 +168,7 @@ inline void CinVTKRenderer::init()
 
 	//Add the actor to the scene
 	renderer->AddActor(actor);
+	renderer->AddActor2D(scalarBar);
 	renderer->ResetCamera();
 
 	renderWin->SetSize(width, height);
@@ -181,6 +188,7 @@ inline void CinVTKRenderer::render()
 	  clock.stop("render");
 		
 	  clock.start("read-buffer");
+	  
 		// Grab the rendered buffer and copy to an array
 		vtkSmartPointer<vtkFloatArray> buffer = vtkSmartPointer<vtkFloatArray>::New();
 		renderWin->GetRGBAPixelData(0, 0, width-1, height-1, 1, buffer);
@@ -189,7 +197,7 @@ inline void CinVTKRenderer::render()
 		for (unsigned y=0; y<height; y++)
 			for (unsigned x=0; x<width; x++) 
 			{
-				size_t index = (y * width *4) + x*4;
+				size_t index = ((height-1-y) * width *4) + x*4;
 
 				imgs[i].pixels[index + 0] = buffer->GetValue(index + 0) * 255;
 				imgs[i].pixels[index + 1] = buffer->GetValue(index + 1) * 255;

@@ -4,6 +4,7 @@
 
 #include "CinDatabase.hpp"
 #include "log.hpp"
+#include "readUnstructuredGrid.h"
 
 std::stringstream debugLog;
 
@@ -23,21 +24,22 @@ int main(int argc, char *argv[])
 
     debugLog << "Renderer: " << renderer << ", dims: " << width << " x " << height << " - filename: " << filename << std::endl;
 
+    //writer.setInputFile(argv[1]);
+
     std::vector<float> point_x, point_y, point_z;
     int numPoints = 30000;
-    srand(time(0)); 
-	for (int i=0; i<numPoints; i++)
-	{
-		point_x.push_back(1500+rand()%100 - 50);
-		point_y.push_back(1500+rand()%100 - 50);
-		point_z.push_back(1500+rand()%100 - 50);
-	}
-    // for (int i=numPoints/2; i<numPoints; i++)
+
+    // srand(time(0)); 
+	// for (int i=0; i<numPoints; i++)
 	// {
-	// 	point_x.push_back(rand()%50);
-	// 	point_y.push_back(rand()%50);
-	// 	point_z.push_back(rand()%50 + 100);
+	// 	point_x.push_back(1500+rand()%100 - 50);
+	// 	point_y.push_back(1500+rand()%100 - 50);
+	// 	point_z.push_back(1500+rand()%100 - 50);
 	// }
+   
+
+    float extents[6];
+    readData("/projects/groups/vizproject/HACC_Halo/cinemac/testdata/extracted.pvtu", 223441, point_x, point_y, point_z, extents);
 
 
 
@@ -46,8 +48,9 @@ int main(int argc, char *argv[])
 
 
     writer.cinRenderer->setDataPoints(point_x, point_y, point_z);
-    writer.cinRenderer->setOrigin(1500,1500,1500);
-    writer.cinRenderer->setRegionRadius(50);
+    //writer.cinRenderer->setOrigin(1500,1500,1500);
+    //writer.cinRenderer->setRegionRadius(50);
+    writer.cinRenderer->setExtents(extents);
 
 
     // set camera positions 

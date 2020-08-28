@@ -74,10 +74,10 @@ inline void CinDatabase::createCinemaDB(int width, int height)
 		for (auto pt=phi_theta.begin(); pt<phi_theta.end(); pt++)
 		{
 			// Save the image to disk
-			std::string imageName = path + "/image/_" + std::to_string((*pt).first) + "_" + std::to_string((*pt).second) + "_img.png";
-			std::string imageDBName = "image/_" + std::to_string((*pt).first) + "_" + std::to_string((*pt).second) + "_img.png";
+			std::string imageName = path + "/image/_" + std::to_string((*pt).first) + "_" + std::to_string((*pt).second) + "_img.jpg";
+			std::string imageDBName =       "image/_" + std::to_string((*pt).first) + "_" + std::to_string((*pt).second) + "_img.jpg";
 		  clock.start("save-to-disk");
-			cinRenderer->createPNG(imageName, count);
+			cinRenderer->createJPG(imageName, count);
 		  clock.stop("save-to-disk");
 		  	debugLog << " - save-to-disk: " << clock.getDuration("save-to-disk") << " s" << std::endl;
 

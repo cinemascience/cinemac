@@ -26,6 +26,7 @@ class CinRenderInterface
 	std::vector< std::pair <float,float> > phi_theta; 
 	float radius;
 	float center[3];
+	float extents[6];
 
 	std::vector<float> points;		// we are only rendering points for now
 
@@ -39,11 +40,13 @@ class CinRenderInterface
 
 	void setOrigin(float _x, float _y, float _z){ center[0]=_x; center[1]=_y; center[2]=_z; }
     void setRegionRadius(float r){ radius = r; }
+	void setExtents(float _extents[6]){ for (int i=0;i<6;i++) extents[i]=_extents[i]; }
 
 	void setWindowSize(int w, int h);
 	void setCameraPositions(std::vector< std::pair <float,float> > _phi_theta);
 	void setDataPoints(std::vector<float>_x, std::vector<float>_y, std::vector<float>_z);
 	void createPNG(std::string filename, int index);
+	void createJPG(std::string filename, int index);
 
 	virtual void init() = 0;	
 	virtual void render() = 0;			// renders to *image  - returns 1 for success
@@ -82,4 +85,9 @@ inline void CinRenderInterface::setDataPoints(std::vector<float>_x, std::vector<
 inline void CinRenderInterface::createPNG(std::string filename, int index)
 {
 	imgs[index].outputPNG(filename);
+}
+
+inline void CinRenderInterface::createJPG(std::string filename, int index)
+{
+	imgs[index].outputJPG(filename);
 }

@@ -31,6 +31,7 @@ struct Image
 	float getPixel(int x, int y, int c){ return pixels[y*width*4 + x*4 + c]; }
 
     void outputPNG(std::string filename);
+    void outputJPG(std::string filename);
 };
 
 
@@ -50,10 +51,14 @@ inline void Image::setPixel(int x, int y, int c, float value)
 
 inline void Image::outputPNG(std::string filename)
 {
-    Timer clock;
-   clock.start("io-b");
-    //stbi_write_png(filename.c_str(), width, height, 4, pixels, width * 4);
-    stbi_write_jpg(filename.c_str(), width, height, 4, pixels, width * 4);
-  clock.stop("io-b");
+    stbi_write_png(filename.c_str(), width, height, 4, pixels, width * 4);
     delete[] pixels;
+    pixels = NULL;
+}
+
+inline void Image::outputJPG(std::string filename)
+{
+    stbi_write_jpg(filename.c_str(), width, height, 4, pixels, width * 4);
+    delete[] pixels;
+    pixels = NULL;
 }

@@ -7,7 +7,6 @@ class DensityCompute
 {
     int gridDims[3];
     float cellSize[3];
-    float origins[3];
     float extents[6]; //minx, miny, minz, maxx, maxy, maxz
     float minDensity, maxDensity;
 
@@ -21,6 +20,7 @@ class DensityCompute
     ~DensityCompute(){};
 
     void init(int dims_x, int dims_y, int dims_z, float _x, float _y, float _z, float r);
+    void init(int dims_x, int dims_y, int dims_z, float _extents[6]);
 
     float getMinDensity(){ return minDensity; }
     float getMaxDensity(){ return maxDensity; }
@@ -35,10 +35,6 @@ void DensityCompute::init(int dims_x, int dims_y, int dims_z, float _x, float _y
     gridDims[0] = dims_x;
     gridDims[1] = dims_y;
     gridDims[2] = dims_z;
-
-    origins[0] = _x;
-    origins[1] = _y;
-    origins[2] = _z;
 
     extents[0] = _x - r;
     extents[1] = _y - r;
@@ -59,6 +55,26 @@ void DensityCompute::init(int dims_x, int dims_y, int dims_z, float _x, float _y
                     << " - " << extents[3] << ", " << extents[4] << ", " << extents[5] << std::endl;
 }
 
+void DensityCompute::init(int dims_x, int dims_y, int dims_z, float _extents[6])
+{
+    gridDims[0] = dims_x;
+    gridDims[1] = dims_y;
+    gridDims[2] = dims_z;
+
+    for (int i=0; i<6; i++)
+        extents[i] = _extents[i];
+
+    // Compute cell size
+    cellSize[0] = (extents[3] - extents[0]) / gridDims[0];
+    cellSize[1] = (extents[4] - extents[1]) / gridDims[1];
+    cellSize[2] = (extents[5] - extents[2]) / gridDims[2];
+
+    densityBins.resize(dims_x * dims_y * dims_z);
+
+    std::cout << "Cellsize: " << cellSize[0] << ", " << cellSize[1] << ", " << cellSize[2] << std::endl;
+    std::cout << "extents: " << extents[0] << ", " << extents[1] << ", " << extents[2] 
+                    << " - " << extents[3] << ", " << extents[4] << ", " << extents[5] << std::endl;
+}
 
 inline int DensityCompute::getCellIndex(float x, float y, float z)
 {
@@ -96,6 +112,9 @@ inline void DensityCompute::computeDensity(float *points, size_t numPoints)
         int index = getCellIndex(_x, _y, _z);
         if (index > gridDims[0]*gridDims[1]*gridDims[2])
         {
+            index = index-1;
+            bins[index]++;
+            
             std::cout << "Error! index:" << index << " for " << _x <<", " << _y << ", " << _z << std::endl;
         }
         else
@@ -111,4 +130,6 @@ inline void DensityCompute::computeDensity(float *points, size_t numPoints)
 
     minDensity = *std::min_element(densityBins.begin(), densityBins.end());
     maxDensity = *std::max_element(densityBins.begin(), densityBins.end());
+
+    std::cout << "minDensity " << minDensity << ", max Density:" << maxDensity << std::endl;
 }
