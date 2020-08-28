@@ -145,18 +145,6 @@ class CinOSPRayRenderer : public CinRenderInterface
 CinOSPRayRenderer::CinOSPRayRenderer()
 {
 	camera    = vtkCamera::New();
-
-	/*
-	input     = 0;
-	reader    = vtkXMLPUnstructuredGridReader::New(); 
-	mapper    = vtkDataSetMapper::New();
-	actor     = vtkActor::New();
-	camera    = vtkCamera::New();
-	renderer  = vtkRenderer::New();
-	renderWin = vtkRenderWindow::New();
-
-	pngWriter = vtkPNGWriter::New();
-	*/
 }
 
 
@@ -240,8 +228,6 @@ void CinOSPRayRenderer::render()
 	volume.setParam("particle.weight", cpp::SharedData(weight_float));
     volume.setParam("estimateValueRanges", false);
 
-	//volume.setParam("particle.radius", cpp::Data(radius));
-	//volume.setParam("particle.weight", cpp::Data(weights));
 	volume.setParam("clampMaxCumulativeValue", 1.f);
 	volume.setParam("radiusSupportFactor", 5.f);
 	volume.commit();
@@ -268,41 +254,20 @@ void CinOSPRayRenderer::render()
 	world.commit();
 
 	cpp::Renderer renderer("scivis");
-	renderer.setParam("spp", 4);
+	renderer.setParam("pixelSamples", 1);
 	//renderer.setParam("backgroundColor", 1.0f); // white, transparent
 
 	renderer.setParam("volumeSamplingRate", 2.f);
-	//renderer.setParam("densityScale", 100.f); 
+	renderer.setParam("densityScale", 100.f); 
 
 	renderer.commit();
 
+	vec2i imgSize(width, height);
+	ArcballCamera arcball((const box3f &)bounds, imgSize);
 
 	int i = 0;
 	for (auto _pt=phi_theta.begin(); _pt!=phi_theta.end(); _pt++)
 	{
-		/*
-		// Change camera position and render
-		//setCameraPosition((*_pt).first, (*_pt).second);
-		double org[3], dir[3], up[3];
-		double fovy;
-		camera->GetEyePosition(org);
-		camera->GetDirectionOfProjection(dir);
-		camera->GetViewUp(up);
-		fovy = camera->GetViewAngle();
-
-		osprayCamera.setParam("aspect", imgSize.x / (float)imgSize.y);
-		osprayCamera.setParam("position", vec3f(org[0], org[1], org[2]));
-		osprayCamera.setParam("direction", vec3f(dir[0], dir[1], dir[2]));
-		osprayCamera.setParam("up", vec3f(up[0], up[1], up[2]));
-		osprayCamera.setParam("fovy", float(fovy));
-		osprayCamera.commit();
-		*/
-
-
-		//AARONBAD -- why is this not working?!!
-		//auto worldBounds = world.getBounds();
-		vec2i imgSize(width, height);
-
 		vec3f cam_pos{0.f, 0.f, 0.f};
  		vec3f cam_up{0.f, 1.f, 0.f};
   		vec3f cam_view{0.1f, 0.f, 0.f};
@@ -310,7 +275,8 @@ void CinOSPRayRenderer::render()
 		cam_pos = bounds.center();
 		cam_pos.x -= bounds.size().x * .1f;
 
-		ArcballCamera arcball((const box3f &)bounds, imgSize);
+		//AARONBAD -- need to figure out how to rotate a quaternion camera using phi and theta
+		arcball.rotate( vec2f(0.f, 0.f), vec2f(0.1f, 0.f) );
 		cam_pos = arcball.eyePos();
 		cam_up = arcball.upDir();
 		cam_view = arcball.lookDir();
@@ -331,7 +297,7 @@ void CinOSPRayRenderer::render()
 		future.wait();
 
 		uint8_t *fb = (uint8_t *)framebuffer.map(OSP_FB_COLOR);
-/*
+		/*
 		char ppmfile[64];
 		std::sprintf(ppmfile, "ospray_frame_%d.ppm", i);
 
@@ -354,8 +320,6 @@ void CinOSPRayRenderer::render()
 		i++;
 
 		framebuffer.unmap(fb);
-
-
 	}
 }
 
