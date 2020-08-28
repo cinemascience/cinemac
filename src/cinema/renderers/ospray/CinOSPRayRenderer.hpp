@@ -59,7 +59,7 @@ using namespace rkcommon::math;
 #include "image.hpp"
 
 
-cpp::TransferFunction makeTransferFunction(const vec2f &valueRange, const std::string tfColorMap = "jet", const std::string tfOpacityMap = "linear" )
+cpp::TransferFunction makeTransferFunction(const vec2f &valueRange, const std::string tfColorMap = "jet2", const std::string tfOpacityMap = "jet" )
 {
   cpp::TransferFunction transferFunction("piecewiseLinear");
 
@@ -74,6 +74,14 @@ cpp::TransferFunction makeTransferFunction(const vec2f &valueRange, const std::s
     colors.emplace_back(1, 1, 0);
     colors.emplace_back(1, 0, 0);
     colors.emplace_back(0.500008, 0, 0);
+  }  if (tfColorMap == "jet2") {
+    colors.emplace_back(0, 0, 0.562493);
+    colors.emplace_back(0, 0, 1);
+    colors.emplace_back(0, .1, 1);
+    colors.emplace_back(0.100008, .5, 1);
+    colors.emplace_back(1, 1, 0);
+    colors.emplace_back(1, 0, 0);
+    colors.emplace_back(0.500008, 0, 0);
   } else if (tfColorMap == "rgb") {
     colors.emplace_back(0, 0, 1);
     colors.emplace_back(0, 1, 0);
@@ -82,10 +90,18 @@ cpp::TransferFunction makeTransferFunction(const vec2f &valueRange, const std::s
     colors.emplace_back(0.f, 0.f, 0.f);
     colors.emplace_back(1.f, 1.f, 1.f);
   }
-
   if (tfOpacityMap == "linear") {
     opacities.emplace_back(0.f);
-    opacities.emplace_back(1.f);
+	opacities.emplace_back(1.f);
+  }
+  else if (tfOpacityMap == "jet") {
+    opacities.emplace_back(0.f);
+    opacities.emplace_back(0.f);
+    opacities.emplace_back(.005f);
+    opacities.emplace_back(.15f);
+    opacities.emplace_back(5.f);
+	opacities.emplace_back(1.f);
+	opacities.emplace_back(0.f);
   }
 
   transferFunction.setParam("color", cpp::CopiedData(colors));
@@ -98,7 +114,6 @@ cpp::TransferFunction makeTransferFunction(const vec2f &valueRange, const std::s
 
 class CinOSPRayRenderer : public CinRenderInterface
 {
-	cpp::World* world;
 	box3f bounds;
 
 	vtkUnstructuredGrid *   input;
@@ -118,7 +133,6 @@ class CinOSPRayRenderer : public CinRenderInterface
 
   public:
 	CinOSPRayRenderer();
-	virtual ~CinOSPRayRenderer();
 
 	void setData( vtkUnstructuredGrid * data );
 	void setCameraPosition(float phi, float theta);
@@ -131,7 +145,6 @@ class CinOSPRayRenderer : public CinRenderInterface
 CinOSPRayRenderer::CinOSPRayRenderer()
 {
 	camera    = vtkCamera::New();
-	world = nullptr;
 
 	/*
 	input     = 0;
@@ -144,12 +157,6 @@ CinOSPRayRenderer::CinOSPRayRenderer()
 
 	pngWriter = vtkPNGWriter::New();
 	*/
-}
-
-CinOSPRayRenderer::~CinOSPRayRenderer()
-{
-	if (world)
-		delete world;
 }
 
 
@@ -175,60 +182,6 @@ void CinOSPRayRenderer::init()
 		std::cerr << "Could not initialize OSPRay" << std::endl;
 		exit(0);
 	}
-	world = new cpp::World;
-
-	cpp::Volume volume("particle");
-
-	//AARONBAD -- there should be a better way of doing this than copying.
-	std::vector<vec3f> points_vec3f;
-	std::vector<float> radius_float;
-	std::vector<float> weight_float;
-
-	bounds.lower = vec3f(std::numeric_limits<float>::max());
-	bounds.upper = vec3f(std::numeric_limits<float>::min());
-
-	uint32_t p=0;
-	for(int i=0; i<points.size(); i+=3, p++)
-	{
-		vec3f point = vec3f(points[i], points[i+1], points[i+2]);
-		points_vec3f.push_back(p);
-		radius_float.push_back(1.0f);
-		weight_float.push_back(1.f);
-		bounds.lower = min(bounds.lower, point);
-		bounds.upper = max(bounds.upper, point);
-		//std::cerr << "point " << points_vec3f[p] << std::endl;
-	}
-
-	volume.setParam("particle.position", cpp::SharedData(points_vec3f));
-	volume.setParam("particle.radius", cpp::SharedData(radius_float));
-	volume.setParam("particle.weight", cpp::SharedData(weight_float));
-
-	//volume.setParam("particle.radius", cpp::Data(radius));
-	//volume.setParam("particle.weight", cpp::Data(weights));
-	volume.setParam("clampMaxCumulativeValue", 1.f);
-	volume.setParam("radiusSupportFactor", 5.f);
-	volume.commit();
-
-	cpp::VolumetricModel model(volume);
-	model.setParam("transferFunction", makeTransferFunction(vec2f(0.f, 1.f)));
-	model.commit();
-
-	cpp::Group group;
-	group.setParam("volume", cpp::CopiedData(model));
-	group.commit();
-
-	cpp::Instance instance(group);
-	instance.commit();
-
-	world->setParam("instance", cpp::CopiedData(instance));
-
-	cpp::Light light("ambient");
-	light.setParam("visible", false);
-	light.commit();
-
-	world->setParam("light", cpp::CopiedData(light));
-	world->commit();
-
 
 #if 0
 
@@ -260,26 +213,69 @@ void CinOSPRayRenderer::init()
 
 void CinOSPRayRenderer::render()
 {
-	cpp::Renderer renderer("scivis");
-	renderer.setParam("spp", 16);
-    //renderer.setParam("backgroundColor", 1.0f); // white, transparent
+	cpp::Volume volume("particle");
 
-    renderer.setParam("volumeSamplingRate", 0.5f);
-    renderer.setParam("densityScale", 100.f); 
+	//AARONBAD -- there should be a better way of doing this than copying.
+	std::vector<vec3f> points_vec3f;
+	std::vector<float> radius_float;
+	std::vector<float> weight_float;
+
+	bounds.lower = vec3f(std::numeric_limits<float>::max());
+	bounds.upper = vec3f(std::numeric_limits<float>::min());
+
+	uint32_t p=0;
+	for(int i=0; i<points.size(); i+=3, p++)
+	{
+		vec3f point(points[i], points[i+1], points[i+2]);
+		points_vec3f.push_back(point);
+		radius_float.push_back(.7f);
+		weight_float.push_back(.5f);
+		bounds.lower = min(bounds.lower, point);
+		bounds.upper = max(bounds.upper, point);
+		//std::cerr << "point " << points_vec3f[p] << std::endl;
+	}
+
+	volume.setParam("particle.position", cpp::SharedData(points_vec3f));
+	volume.setParam("particle.radius", cpp::SharedData(radius_float));
+	volume.setParam("particle.weight", cpp::SharedData(weight_float));
+    volume.setParam("estimateValueRanges", false);
+
+	//volume.setParam("particle.radius", cpp::Data(radius));
+	//volume.setParam("particle.weight", cpp::Data(weights));
+	volume.setParam("clampMaxCumulativeValue", 1.f);
+	volume.setParam("radiusSupportFactor", 5.f);
+	volume.commit();
+
+	cpp::VolumetricModel model(volume);
+	model.setParam("transferFunction", makeTransferFunction(vec2f(0.f, 1.f)));
+	model.commit();
+
+	cpp::Group group;
+	group.setParam("volume", cpp::CopiedData(model));
+	group.commit();
+
+	cpp::Instance instance(group);
+	instance.commit();
+
+	cpp::World world;
+	world.setParam("instance", cpp::CopiedData(instance));
+
+	cpp::Light light("ambient");
+	light.setParam("visible", false);
+	light.commit();
+
+	world.setParam("light", cpp::CopiedData(light));
+	world.commit();
+
+	cpp::Renderer renderer("scivis");
+	renderer.setParam("spp", 4);
+	//renderer.setParam("backgroundColor", 1.0f); // white, transparent
+
+	renderer.setParam("volumeSamplingRate", 2.f);
+	//renderer.setParam("densityScale", 100.f); 
 
 	renderer.commit();
 
-	//AARONBAD -- why is this not working?!!
-    //auto worldBounds = world.getBounds();
-	vec2i imgSize(width, height);
-
-    ospray::cpp::Camera osprayCamera("perspective");
-	ArcballCamera arcball((const box3f &)bounds, imgSize);
-
-
-    // create and setup framebuffer
-    ospray::cpp::FrameBuffer framebuffer(
-        imgSize.x, imgSize.y, OSP_FB_SRGBA, OSP_FB_COLOR | OSP_FB_ACCUM);
 
 	int i = 0;
 	for (auto _pt=phi_theta.begin(); _pt!=phi_theta.end(); _pt++)
@@ -302,6 +298,11 @@ void CinOSPRayRenderer::render()
 		osprayCamera.commit();
 		*/
 
+
+		//AARONBAD -- why is this not working?!!
+		//auto worldBounds = world.getBounds();
+		vec2i imgSize(width, height);
+
 		vec3f cam_pos{0.f, 0.f, 0.f};
  		vec3f cam_up{0.f, 1.f, 0.f};
   		vec3f cam_view{0.1f, 0.f, 0.f};
@@ -309,10 +310,12 @@ void CinOSPRayRenderer::render()
 		cam_pos = bounds.center();
 		cam_pos.x -= bounds.size().x * .1f;
 
+		ArcballCamera arcball((const box3f &)bounds, imgSize);
 		cam_pos = arcball.eyePos();
 		cam_up = arcball.upDir();
 		cam_view = arcball.lookDir();
 
+		ospray::cpp::Camera osprayCamera("perspective");
 		osprayCamera.setParam("aspect", imgSize.x / (float)imgSize.y);
 		osprayCamera.setParam("position", cam_pos);
 		osprayCamera.setParam("direction", cam_view);
@@ -320,35 +323,38 @@ void CinOSPRayRenderer::render()
 		osprayCamera.setParam("fovy", float(fovy));
 		osprayCamera.commit();
 
+	    ospray::cpp::FrameBuffer framebuffer(
+    	    imgSize.x, imgSize.y, OSP_FB_SRGBA, OSP_FB_COLOR | OSP_FB_ACCUM);
 
     	framebuffer.clear();
-		auto future = framebuffer.renderFrame(renderer, osprayCamera, *world);
+		auto future = framebuffer.renderFrame(renderer, osprayCamera, world);
 		future.wait();
 
-		uint32_t *fb = (uint32_t *)framebuffer.map(OSP_FB_COLOR);
-
+		uint8_t *fb = (uint8_t *)framebuffer.map(OSP_FB_COLOR);
+/*
 		char ppmfile[64];
 		std::sprintf(ppmfile, "ospray_frame_%d.ppm", i);
 
     	rkcommon::utility::writePPM(ppmfile, imgSize.x, imgSize.y, fb);
-		framebuffer.unmap(fb);
 
 		std::cerr << "wrote ppm" << std::endl;
-
-		uint8_t *fb8 = (uint8_t *) fb;
+		*/
 
 		// AARONBAD: can we just do a memcpy?
 		for (size_t y=0; y<height; y++)
 			for (size_t x=0; x<width; x++)
 			{
-				size_t index = (y * width *4) + x*4;
+				const uint32_t index = (x + y * width) * 4;
 
-				imgs[i].setPixel( x,y, 0, float(fb8[(x + y * width) * 4 + 0]) / 255.f );
-				imgs[i].setPixel( x,y, 1, float(fb8[(x + y * width) * 4 + 1]) / 255.f );
-				imgs[i].setPixel( x,y, 2, float(fb8[(x + y * width) * 4 + 2]) / 255.f );
+				imgs[i].setPixel( x,y, 0, float(fb[index + 0]) / 255.f );
+				imgs[i].setPixel( x,y, 1, float(fb[index + 1]) / 255.f );
+				imgs[i].setPixel( x,y, 2, float(fb[index + 2]) / 255.f );
 				imgs[i].setPixel( x,y, 3, (float)1.0);
 			}
 		i++;
+
+		framebuffer.unmap(fb);
+
 
 	}
 }
