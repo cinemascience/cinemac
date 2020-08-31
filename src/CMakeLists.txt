@@ -17,6 +17,8 @@ include_directories(${CMAKE_SOURCE_DIR}/cinema/utils)
 
 set(CMAKE_CXX_FLAGS "-std=c++17")
 
+set(CMAKE_CXX_FLAGS "-std=c++17")
+
 
 #libraries
 #add_library(lodePng SHARED cinema/utils/lodepng/lodepng.h cinema/utils/lodepng/lodepng.cpp)

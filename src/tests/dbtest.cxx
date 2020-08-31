@@ -56,7 +56,11 @@ int main(int argc, char *argv[])
 
 
     // create a writer
+<<<<<<< HEAD
     CinDatabase writer(filename + ".cdb", renderer);
+=======
+    CinDatabase writer("example.cdb", rendererName);
+>>>>>>> 59777f68577e0f5e475da7a2e54fc349a9715ec1
 
     writer.cinRenderer->setDataPoints(point_x, point_y, point_z);
     //writer.cinRenderer->setOrigin(1500,1500,1500);
