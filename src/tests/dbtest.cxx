@@ -23,11 +23,11 @@ int main(int argc, char *argv[])
         if (arg == "-r" || arg == "--renderer") {
             renderer = argv[++i];
         }
-        if (arg == "-i" || arg == "--imageSize") {
+        else if (arg == "-i" || arg == "--imageSize") {
             width = std::stoi(argv[++i]);
             height = std::stoi(argv[++i]);
         }
-        if (arg == "-f" || arg == "--filename") {
+        else if (arg == "-f" || arg == "--filename") {
             filename = argv[++i];
         }
         else {
