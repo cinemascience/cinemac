@@ -13,19 +13,19 @@ int main(int argc, char *argv[])
 {
 
     std::string filename = "cinemaTest";
-    std::string rendererName = "VTK";
+    std::string renderer = "VTK";
     int width, height;
     width =  512;
     height = 512;
 
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
-        if (arg == "-r" || arg == "--rendererName") {
-            rendererName = argv[++i];
+        if (arg == "-r" || arg == "--renderer") {
+            renderer = argv[++i];
         }
         if (arg == "-i" || arg == "--imageSize") {
-            width = stoi(argv[++i]);
-            height = stoi(argv[++i]);
+            width = std::stoi(argv[++i]);
+            height = std::stoi(argv[++i]);
         }
         if (arg == "-f" || arg == "--filename") {
             filename = argv[++i];
@@ -56,12 +56,7 @@ int main(int argc, char *argv[])
 
 
     // create a writer
-<<<<<<< HEAD
     CinDatabase writer(filename + ".cdb", renderer);
-
-=======
-    CinDatabase writer("example.cdb", rendererName);
->>>>>>> ospray compiles and runs
 
     writer.cinRenderer->setDataPoints(point_x, point_y, point_z);
     //writer.cinRenderer->setOrigin(1500,1500,1500);

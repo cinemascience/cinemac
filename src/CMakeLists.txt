@@ -19,8 +19,8 @@ set(CMAKE_CXX_FLAGS "-std=c++17")
 
 
 #libraries
-add_library(lodePng SHARED cinema/utils/lodepng/lodepng.h cinema/utils/lodepng/lodepng.cpp)
-set (PRJ_LIBS ${PRJ_LIBS} lodePng)
+#add_library(lodePng SHARED cinema/utils/lodepng/lodepng.h cinema/utils/lodepng/lodepng.cpp)
+#set (PRJ_LIBS ${PRJ_LIBS} lodePng)
 
 option(RENDERER_OSPRAY "Enables the OSPRay renderer" ON)
 if (RENDERER_OSPRAY)
@@ -51,11 +51,14 @@ if (RENDERER_VTK)
 endif()
 
 
-find_package(OpenMP)
-if (OPENMP_FOUND)
-    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-    set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+option (USE_OPENMP "Enable OpenMP" ON)
+if (USE_OPENMP)
+    find_package(OpenMP)
+    if (OPENMP_FOUND)
+        set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+        set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+        set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+    endif()
 endif()
 
 # test
