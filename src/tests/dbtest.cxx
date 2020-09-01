@@ -51,7 +51,9 @@ int main(int argc, char *argv[])
    
 
     float extents[6];
-    readData("/projects/groups/vizproject/HACC_Halo/cinemac/testdata/extracted.pvtu", 223441, point_x, point_y, point_z, extents);
+
+    readData("/Users/aaronkno/work/intel/cinemac/testdata/extracted.pvtu", 223441, point_x, point_y, point_z, extents);
+    //readData("/projects/groups/vizproject/HACC_Halo/cinemac/testdata/extracted.pvtu", 223441, point_x, point_y, point_z, extents);
 
 
 

@@ -22,38 +22,11 @@
 
 #include "ArcballCamera.h"
 
-#include <vtkCamera.h>
+//#include <vtkCamera.h>
 
 using namespace ospray;
 using namespace rkcommon;
 using namespace rkcommon::math;
-
-
-#if 0
-#include <vtkFloatArray.h>
-#include <vtkActor.h>
-#include <vtkCamera.h>
-#include <vtkDataSetMapper.h>
-#include <vtkProperty.h>
-#include <vtkRenderer.h>
-#include <vtkRenderWindow.h>
-#include <vtkXMLPUnstructuredGridReader.h>
-#include <vtkRendererCollection.h>
-#include <vtkUnstructuredGrid.h>
-#include <vtkXMLPUnstructuredGridReader.h>
-#include <vtkRenderWindow.h>
-#include <vtkSmartPointer.h>
-#include <vtkDataSetMapper.h>
-#include <vtkActor.h>
-#include <vtkCamera.h>
-#include <vtkRenderer.h>
-#include <vtkRenderWindow.h>
-
-#include <vtkWindowToImageFilter.h>
-#include <vtkPNGWriter.h>
-//#include "vtkStructures/unstructuredGrid.h"
-
-#endif
 
 #include "CinRenderInterface.h"
 #include "image.hpp"
@@ -116,20 +89,10 @@ class CinOSPRayRenderer : public CinRenderInterface
 {
 	box3f bounds;
 
-	vtkUnstructuredGrid *   input;
+	//vtkUnstructuredGrid *   input;
     bool                    loaded;
 
     UnstructuredGrid pointData;
-
-    // pipeline
-    vtkActor *                      actor;
-    vtkCamera *                     camera;
-    vtkDataSetMapper *              mapper;
-    vtkXMLPUnstructuredGridReader * reader;
-    vtkRenderer *                   renderer;
-    vtkRenderWindow *               renderWin;
-
-	vtkPNGWriter *                  pngWriter;
 
   public:
 	CinOSPRayRenderer();
@@ -144,21 +107,21 @@ class CinOSPRayRenderer : public CinRenderInterface
 
 CinOSPRayRenderer::CinOSPRayRenderer()
 {
-	camera    = vtkCamera::New();
+	//camera    = vtkCamera::New();
 }
 
 
 void CinOSPRayRenderer::setData( vtkUnstructuredGrid * data )
 {
-	input = data;
+	//input = data;
 }
 
 
 
 void CinOSPRayRenderer::setCameraPosition(float phi, float theta)
 {
-	camera->Azimuth(phi);
-	camera->Elevation(theta);
+	//camera->Azimuth(phi);
+	//camera->Elevation(theta);
 }
 
 
@@ -170,33 +133,6 @@ void CinOSPRayRenderer::init()
 		std::cerr << "Could not initialize OSPRay" << std::endl;
 		exit(0);
 	}
-
-#if 0
-
-	// Set the points to use
-	pointData.setPoints(&points[0], points.size()/3, VTK_VERTEX);
-
-	// Set up renderer
-	mapper->SetInputData( pointData.uGrid );
-	mapper->ScalarVisibilityOff();
-
-	actor->SetMapper(mapper);
-	actor->GetProperty()->EdgeVisibilityOn();
-	actor->GetProperty()->SetPointSize(2.0);
-	actor->GetProperty()->SetColor(0,0,1);
-
-	renderer->SetActiveCamera(camera);
-	renderWin->SetOffScreenRendering(1);       // for offscreen
-	renderWin->AddRenderer(renderer);
-
-	//Add the actor to the scene
-	renderer->AddActor(actor);
-	renderer->ResetCamera();
-
-	renderWin->SetSize(width, height);
-
-#endif
-
 }
 
 void CinOSPRayRenderer::render()
@@ -216,12 +152,28 @@ void CinOSPRayRenderer::render()
 	{
 		vec3f point(points[i], points[i+1], points[i+2]);
 		points_vec3f.push_back(point);
-		radius_float.push_back(.7f);
-		weight_float.push_back(.5f);
 		bounds.lower = min(bounds.lower, point);
 		bounds.upper = max(bounds.upper, point);
 		//std::cerr << "point " << points_vec3f[p] << std::endl;
 	}
+
+	std::cerr << "points_vec3f.size() = " << points_vec3f.size() << std::endl;
+	std::cerr << "bounds.size() = " << bounds.size() << std::endl;
+
+	const float fixed_radius = length(bounds.size()) / (1.5f * 100.f);
+	std::cerr << "fixed_radius = " << fixed_radius << std::endl;
+
+	for(int i=0; i<points_vec3f.size(); i++)
+	{
+		vec3f& p = points_vec3f[i];
+		p = (p - bounds.lower) * vec3f(100.f) / bounds.size(); 
+		//radius_float.push_back(fixed_radius);
+		radius_float.push_back(.5f);
+		weight_float.push_back(.25f);
+	}
+
+	bounds.lower = vec3f(0.f);
+	bounds.upper = vec3f(100.f);
 
 	volume.setParam("particle.position", cpp::SharedData(points_vec3f));
 	volume.setParam("particle.radius", cpp::SharedData(radius_float));
@@ -229,7 +181,7 @@ void CinOSPRayRenderer::render()
     volume.setParam("estimateValueRanges", false);
 
 	volume.setParam("clampMaxCumulativeValue", 1.f);
-	volume.setParam("radiusSupportFactor", 5.f);
+	volume.setParam("radiusSupportFactor", 3.f);
 	volume.commit();
 
 	cpp::VolumetricModel model(volume);
@@ -297,20 +249,22 @@ void CinOSPRayRenderer::render()
 		future.wait();
 
 		uint8_t *fb = (uint8_t *)framebuffer.map(OSP_FB_COLOR);
-		/*
+
+		#if 1
 		char ppmfile[64];
 		std::sprintf(ppmfile, "ospray_frame_%d.ppm", i);
 
-    	rkcommon::utility::writePPM(ppmfile, imgSize.x, imgSize.y, fb);
+    	rkcommon::utility::writePPM(ppmfile, imgSize.x, imgSize.y, (uint32_t*)fb);
 
 		std::cerr << "wrote ppm" << std::endl;
-		*/
+		#endif
+
 
 		// AARONBAD: can we just do a memcpy?
-		for (size_t y=0; y<height; y++)
-			for (size_t x=0; x<width; x++)
+		for (uint32_t y=0; y<imgSize.y; y++)
+			for (uint32_t x=0; x<imgSize.x; x++)
 			{
-				const uint32_t index = (x + y * width) * 4;
+				const uint32_t index = (x + y * imgSize.x) * 4;
 
 				imgs[i].setPixel( x,y, 0, float(fb[index + 0]) / 255.f );
 				imgs[i].setPixel( x,y, 1, float(fb[index + 1]) / 255.f );
