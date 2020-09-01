@@ -209,7 +209,7 @@ void CinOSPRayRenderer::render()
 	renderer.setParam("pixelSamples", 1);
 	//renderer.setParam("backgroundColor", 1.0f); // white, transparent
 
-	renderer.setParam("volumeSamplingRate", 2.f);
+	renderer.setParam("volumeSamplingRate", 1.f);
 	renderer.setParam("densityScale", 100.f); 
 
 	renderer.commit();
@@ -250,7 +250,7 @@ void CinOSPRayRenderer::render()
 
 		uint8_t *fb = (uint8_t *)framebuffer.map(OSP_FB_COLOR);
 
-		#if 1
+		#if 0
 		char ppmfile[64];
 		std::sprintf(ppmfile, "ospray_frame_%d.ppm", i);
 
@@ -259,18 +259,21 @@ void CinOSPRayRenderer::render()
 		std::cerr << "wrote ppm" << std::endl;
 		#endif
 
-
 		// AARONBAD: can we just do a memcpy?
 		for (uint32_t y=0; y<imgSize.y; y++)
 			for (uint32_t x=0; x<imgSize.x; x++)
 			{
 				const uint32_t index = (x + y * imgSize.x) * 4;
 
-				imgs[i].setPixel( x,y, 0, float(fb[index + 0]) / 255.f );
-				imgs[i].setPixel( x,y, 1, float(fb[index + 1]) / 255.f );
-				imgs[i].setPixel( x,y, 2, float(fb[index + 2]) / 255.f );
-				imgs[i].setPixel( x,y, 3, (float)1.0);
+				//size_t index = ((height-1-y) * width *4) + x*4;
+				imgs[i].pixels[index + 0] = fb[index + 0];
+				imgs[i].pixels[index + 1] = fb[index + 1];
+				imgs[i].pixels[index + 2] = fb[index + 2];
+				imgs[i].pixels[index + 3] = 255;
 			}
+
+		std::cerr << "wrote frame " << i << std::endl;
+
 		i++;
 
 		framebuffer.unmap(fb);
