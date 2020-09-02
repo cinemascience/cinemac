@@ -14,7 +14,6 @@
 
 #include <ospray/ospray_cpp.h>
 #include <ospray/ospray_util.h>
-#include "ospray_testing.h"
 
 #include "rkcommon/utility/CodeTimer.h"
 #include "rkcommon/utility/SaveImage.h"
