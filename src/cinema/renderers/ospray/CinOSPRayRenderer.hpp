@@ -166,6 +166,7 @@ void CinOSPRayRenderer::render()
 	for(int i=0; i<points_vec3f.size(); i++)
 	{
 		vec3f& p = points_vec3f[i];
+		//AARONBAD -- bug in OpenVKL with small radii? (.0004) -- scale everything up to [0,100]
 		p = (p - bounds.lower) * vec3f(100.f) / bounds.size(); 
 		//radius_float.push_back(fixed_radius);
 		radius_float.push_back(.5f);
