@@ -10,6 +10,8 @@
 #include <memory>
 #include <iterator>
 
+#ifdef HAS_OSPRAY_RENDERER
+
 #include <ospray/ospray_cpp.h>
 #include <ospray/ospray_util.h>
 #include "ospray_testing.h"
@@ -281,5 +283,4 @@ void CinOSPRayRenderer::render()
 	}
 }
 
-
-
+#endif

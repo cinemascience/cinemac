@@ -5,8 +5,12 @@
 #include <fstream>
 #include <iostream>
 #include <algorithm>
-#include <malloc/malloc.h>
 #include <string.h>
+
+#ifndef USING_LINUX
+#include <malloc/malloc.h>
+#endif
+
 
 #define STBI_MSC_SECURE_CRT
 #define STB_IMAGE_WRITE_IMPLEMENTATION

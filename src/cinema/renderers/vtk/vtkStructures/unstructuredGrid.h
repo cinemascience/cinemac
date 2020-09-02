@@ -5,7 +5,7 @@
 #include <sstream>
 
 
-//#include <mpi.h>
+#ifdef HAS_VTK_RENDERER
 
 #include <vtkSmartPointer.h>
 #include <vtkDataSet.h>
@@ -13,11 +13,9 @@
 #include <vtkSOADataArrayTemplate.h>
 #include <vtkCellArray.h>
 #include <vtkPoints.h>
-//#include <vtkMPIController.h>
 #include <vtkXMLPUnstructuredGridWriter.h>
-//#include <vtkMPIController.h>
-#include <vtkPointData.h>
 
+#include <vtkPointData.h>
 //#include <mpi.h>
 //#include <vtkXMLPUnstructuredGridWriter.h>
 //#include <vtkMPIController.h>
@@ -263,3 +261,5 @@ inline void UnstructuredGrid::write(std::string fileName, int parallel)
 */
 
 // example: http://visit.ilight.com/svn/visit/tags/2.4.0/vendor_branches/vtk/src/Parallel/vtkMPIController.cxx
+
+#endif

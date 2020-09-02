@@ -13,6 +13,7 @@
 // See the License for the specific language governing permissions and      //
 // limitations under the License.                                           //
 // ======================================================================== //
+#ifdef HAS_OSPRAY_RENDERER
 
 #include "ArcballCamera.h"
 
@@ -105,3 +106,5 @@ quaternionf ArcballCamera::screenToArcball(const vec2f &p)
     return quaternionf(0, unitDir.x, unitDir.y, 0);
   }
 }
+
+#endif

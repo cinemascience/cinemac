@@ -17,12 +17,6 @@ include_directories(${CMAKE_SOURCE_DIR}/cinema/utils)
 
 set(CMAKE_CXX_FLAGS "-std=c++17")
 
-set(CMAKE_CXX_FLAGS "-std=c++17")
-
-
-#libraries
-#add_library(lodePng SHARED cinema/utils/lodepng/lodepng.h cinema/utils/lodepng/lodepng.cpp)
-#set (PRJ_LIBS ${PRJ_LIBS} lodePng)
 
 option(RENDERER_OSPRAY "Enables the OSPRay renderer" ON)
 if (RENDERER_OSPRAY)
@@ -37,6 +31,7 @@ if (RENDERER_OSPRAY)
     endif()
     rkcommon_configure_build_type()
 endif()
+
 
 option(RENDERER_VTK "Enables the VTK renderer" ON)
 if (RENDERER_VTK)
@@ -53,6 +48,9 @@ if (RENDERER_VTK)
 endif()
 
 
+if (UNIX AND NOT APPLE)
+add_definitions(-DUSING_LINUX)
+
 option (USE_OPENMP "Enable OpenMP" ON)
 if (USE_OPENMP)
     find_package(OpenMP)
@@ -62,6 +60,9 @@ if (USE_OPENMP)
         set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
     endif()
 endif()
+
+endif() # (UNIX AND NOT APPLE)
+
 
 # test
 add_subdirectory(tests)

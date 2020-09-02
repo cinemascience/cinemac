@@ -16,6 +16,8 @@
 
 #pragma once
 
+#ifdef HAS_OSPRAY_RENDERER
+
 #include "rkcommon/math/AffineSpace.h"
 
 using namespace rkcommon::math;
@@ -50,3 +52,5 @@ class ArcballCamera
   AffineSpace3f centerTranslation, translation, invCamera;
   quaternionf rotation;
 };
+
+#endif

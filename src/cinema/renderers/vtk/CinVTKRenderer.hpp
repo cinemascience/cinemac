@@ -6,6 +6,8 @@
 #include <fstream>
 #include <vector>
 
+#ifdef HAS_VTK_RENDERER
+
 #include <vtkFloatArray.h>
 #include <vtkActor.h>
 #include <vtkCamera.h>
@@ -193,7 +195,10 @@ inline void CinVTKRenderer::render()
 		vtkSmartPointer<vtkFloatArray> buffer = vtkSmartPointer<vtkFloatArray>::New();
 		renderWin->GetRGBAPixelData(0, 0, width-1, height-1, 1, buffer);
 
+
+	  #ifdef USING_LINUX
 		#pragma omp parallel for
+	  #endif
 		for (unsigned y=0; y<height; y++)
 			for (unsigned x=0; x<width; x++) 
 			{
@@ -210,3 +215,5 @@ inline void CinVTKRenderer::render()
 	  debugLog << " - VTK render took " << (*_pt).first << ", " << (*_pt).second << " took " << clock.getDuration("render") << " s and buffer capture took: " << clock.getDuration("read-buffer") << " s" << std::endl;
 	}
 }
+
+#endif
