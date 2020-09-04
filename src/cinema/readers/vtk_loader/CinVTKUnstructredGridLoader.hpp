@@ -2,7 +2,9 @@
 
 #include <string>
 #include <iostream>
+#include <algorithm>
 #include <sstream>
+#include <limits>
 
 #ifdef HAS_VTK_RENDERER
 
@@ -25,6 +27,7 @@ class CinVtkUnstructuredGridLoader: public CinLoaderInterface
 {
 	void init(){};
 	void load();
+	void loadVariable(std::string variableName);
 };
 
 
@@ -49,21 +52,70 @@ inline void CinVtkUnstructuredGridLoader::load()
 	std::vector<float> myDataValues;
 	myDataValues.resize(numPoints*3);
 
+	float extents[6] = {std::numeric_limits<float>::max(),
+						std::numeric_limits<float>::max(),
+						std::numeric_limits<float>::max(),
+						std::numeric_limits<float>::min(),
+						std::numeric_limits<float>::min(),
+						std::numeric_limits<float>::min()};
+
 	for (size_t i=0; i<numPoints; i++)
 	{
 		myDataValues[0*numPoints+i]=farrayX->GetValue(i);
 		myDataValues[1*numPoints+i]=farrayY->GetValue(i);
 		myDataValues[2*numPoints+i]=farrayZ->GetValue(i);
+
+		extents[0] = std::min(extents[0],farrayX->GetValue(i));
+		extents[1] = std::min(extents[1],farrayY->GetValue(i));
+		extents[2] = std::min(extents[2],farrayZ->GetValue(i));
+
+		extents[3] = std::max(extents[3],farrayX->GetValue(i));
+		extents[4] = std::max(extents[4],farrayY->GetValue(i));
+		extents[5] = std::max(extents[5],farrayZ->GetValue(i));
 	}
 
-	myData.addVariable( Variable("position", 1, 1,1,numPoints,  &myDataValues[0]) );
+	std::cout << "Read in ~ Num points : " << numPoints << std::endl;
+	std::cout << "Read in ~ extents: " << extents[0] << ", " << extents[1] << ", " << extents[2] 
+                            << " - " << extents[3] << ", " << extents[4] << ", " << extents[5] << std::endl;
 
-	std::cout << "Num points loaded: " << numPoints << std::endl;
+	addVariable( Variable("position", numPoints, 3, extents, &myDataValues[0]) );
+}
 
 
-	//vtkDataArray* array = ugrid->GetPointData()->GetArray("myscalararrayname");  // to retrieve  he data array from its name
-   	//vtkDataArray* array = ugrid->GetPointData()->GetScalars();   // to retrieve the data array tagged as being the active scalar
-   	 // data array is an abstract class, you might want to use the real type class  for fastest access: eg: float
+inline void CinVtkUnstructuredGridLoader::loadVariable(std::string variableName)
+{
+	vtkSmartPointer<vtkXMLPUnstructuredGridReader> reader = vtkSmartPointer<vtkXMLPUnstructuredGridReader>::New();
+  	reader->SetFileName(filename.c_str());
+  	reader->Update();
+
+	vtkDataArray* arrayX = reader->GetOutput()->GetPointData()->GetArray(variableName.c_str());
+	vtkFloatArray* farrayX = vtkFloatArray::SafeDownCast(arrayX); 
+
+	size_t numPoints = reader->GetOutput()->GetNumberOfPoints();
+
+
+	std::vector<float> myDataValues;
+	myDataValues.resize(numPoints);
+
+	float extents[6] = {std::numeric_limits<float>::max(),
+						std::numeric_limits<float>::min(),
+						0,
+						0,
+						0,
+						0};
+
+	for (size_t i=0; i<numPoints; i++)
+	{
+		myDataValues[0*numPoints+i]=farrayX->GetValue(i);
+
+		extents[0] = std::min(extents[0],farrayX->GetValue(i));
+		extents[1] = std::min(extents[1],farrayX->GetValue(i));
+	}
+
+	std::cout << "Read in ~ Num points : " << numPoints << std::endl;
+	std::cout << "Read in ~ extents: " << extents[0] << " - " << extents[1] << std::endl;
+
+	addVariable( Variable(variableName, numPoints, 1, extents , &myDataValues[0]) );
 }
 
 #endif //HAS_VTK_RENDERER

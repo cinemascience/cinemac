@@ -9,8 +9,17 @@ This is the repository for the `cinemac` library, a library of C++ based capabil
 
 ````
     source env/darwin.sh
-	spack load /5254leh #vtk@8.2.0
+
+
 ````
+
+- Download ispc from /home/pascal/software/ispc-v1.14.1-linux/bin/ispc. version v1.14.1
+- Get intel-tbb from spack (spack install intel-tbb), version 2.20
+- Install embree from source git@github.com:embree/embree.git, version v3.11.0
+- Intall rtkcommon from source git@github.com:ospray/rkcommon.git, version v1.4.2
+- Install openvkl from source git@github.com:openvkl/openvkl.git, version 0.10.0
+- Install ospray from source git@github.com:ospray/ospray.git, version v2.2.0
+
 
 ## build instructions
 

@@ -63,17 +63,6 @@ int main(int argc, char *argv[])
     
     if (useTestData)
     {
-        //float extents[6];
-        //numPoints = readData(testDataset, point_x, point_y, point_z, extents);
-
-
-
-        //writer.cinRenderer->addData( Structure(numPoints, point_x, point_y, point_z, 
-        //                                                    point_x, point_y, point_z, 
-        //                                                    (extents[0]+extents[3])/2.0, (extents[1]+extents[4])/2.0, (extents[2]+extents[5])/2.0,
-        //                                                    0.05, 
-        //                                                    0.5, 0.1, 0.7 ) );
-
         writer.cinRenderer->cinDataLoader->setFilename(testDataset);
         writer.cinRenderer->cinDataLoader->load();
     }
@@ -107,4 +96,5 @@ int main(int argc, char *argv[])
 }
 
 // Run instructions:
-// dbtest --renderer VTK --data /home/pascal/projects/cinemac/testdata/extracted.pvtu
+// dbtest --renderer VTK --data /home/pascal/projects/cinemac/testdata/extracted.pvtu -f cinemaTestX
+// dbtest --renderer OSPRAY --data /home/pascal/projects/cinemac/testdata/extracted.pvtu -f cinemaTestX

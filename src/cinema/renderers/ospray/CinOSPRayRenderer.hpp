@@ -149,12 +149,17 @@ void CinOSPRayRenderer::render()
 	bounds.upper = vec3f(std::numeric_limits<float>::min());
 
 	uint32_t p=0;
-	for(int i=0; i<points.size(); i+=3, p++)
+	size_t numPoints = cinDataLoader->variables[0].getNumPoints();
+	for(int i=0; i<numPoints; i++, p++)
 	{
-		vec3f point(points[i], points[i+1], points[i+2]);
+		vec3f point(cinDataLoader->variables[0].data[0*numPoints + i], 
+					cinDataLoader->variables[0].data[1*numPoints + i], 
+					cinDataLoader->variables[0].data[2*numPoints + i]);
+		
 		points_vec3f.push_back(point);
 		bounds.lower = min(bounds.lower, point);
 		bounds.upper = max(bounds.upper, point);
+
 		//std::cerr << "point " << points_vec3f[p] << std::endl;
 	}
 

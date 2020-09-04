@@ -47,7 +47,6 @@ inline void CinDatabase::addCameraPosition(float phi, float theta)
 }
 
 
-
 inline void CinDatabase::createCinemaDB(int width, int height)
 {
 	Timer clock;

@@ -29,7 +29,6 @@ inline size_t readData(std::string filename, std::vector<float> &vecX, std::vect
 	vtkDataArray* arrayX = reader->GetOutput()->GetPointData()->GetArray("x");
 	vtkFloatArray* farrayX = vtkFloatArray::SafeDownCast(arrayX); 
 
-
 	vtkDataArray* arrayY = reader->GetOutput()->GetPointData()->GetArray("y");
 	vtkFloatArray* farrayY = vtkFloatArray::SafeDownCast(arrayY); 
 

@@ -121,6 +121,7 @@ inline void CinVTKRenderer::renderHalo(float *pos, float *vel, float center[3], 
 	UnstructuredGrid pointData;
 	pointData.setPoints(pos, numPoints, VTK_VERTEX);
 
+	
 	vtkSmartPointer<vtkDataSetMapper> pointsMapper = vtkSmartPointer<vtkDataSetMapper>::New();
 	pointsMapper->SetInputData( pointData.uGrid );
 
@@ -159,19 +160,13 @@ inline void CinVTKRenderer::init()
 {
 	// Render elements
 
-	// for (int i=0; i<structuresList.size(); i++)
-	// 	renderHalo(&structuresList[i].pos[0], &structuresList[i].vel[0], structuresList[i].center, 
-	// 				structuresList[i].centerColor, structuresList[i].radius, structuresList[i].numPoints);
-
-	for (int i=0; i<cinDataLoader->myData.variables.size(); i++)
+	for (int i=0; i<cinDataLoader->variables.size(); i++)
 	{
-		size_t numPoints = cinDataLoader->myData.variables[i].dimSize[0] *
-						   cinDataLoader->myData.variables[i].dimSize[1] * 
-						   cinDataLoader->myData.variables[i].dimSize[2];
+		size_t numPoints = cinDataLoader->variables[i].getNumPoints();
+		float center[3] = {4.7, 6.0, 0.5};
+		float centerColor[3] = {0.5, 0.1, 0.7};
 
-		float center[3] = {4.6, 5.9, 0.45};
-		float centerColor[3] = {0.5,0.1,0.7};
-		renderHalo(cinDataLoader->myData.variables[i].data, cinDataLoader->myData.variables[i].data, center,
+		renderHalo(cinDataLoader->variables[i].data, cinDataLoader->variables[i].data, center,
 				   centerColor,  0.05,  numPoints);
 	}
 

@@ -113,9 +113,11 @@ inline void UnstructuredGrid::setPoints(T *pointData, int numPoints, int cellTyp
 	for (int i=0; i<numPoints ; ++i)
 	{
 		T pnt[3];
-		pnt[0] = pointData[i*3 + 0];
-		pnt[1] = pointData[i*3 + 1];
-		pnt[2] = pointData[i*3 + 2];
+		pnt[0] = pointData[numPoints*0 + i];
+		pnt[1] = pointData[numPoints*1 + i];
+		pnt[2] = pointData[numPoints*2 + i];
+
+		//std::cout << pnt[0] << ", " << pnt[1] << ", " << pnt[2] << std::endl;
 
 		pnts->SetPoint(i, pnt[0],pnt[1],pnt[2]);
 		cells->InsertNextCell(1, &idx);
