@@ -13,18 +13,16 @@ std::stringstream debugLog;
 int main(int argc, char *argv[]) 
 {
 
-    std::string filename = "cinemaTest";
+    std::string outFilename = "cinemaTest";
     std::string renderer = "VTK";
     std::string dataLoader = "VTK-UNSTRUCTURED";
 
     bool useTestData = true;
 
-    std::string testDataset = "/home/pascal/projects/cinemac/testdata/extracted.pvtu";
-    //std::string testDataset = "/Users/aaronkno/work/intel/cinemac/testdata/extracted.pvtu";
+    //std::string testDataset = "/home/pascal/projects/cinemac/testdata/extracted.pvtu";
+    std::string testDataset = "/Users/aaronkno/work/intel/cinemac/testdata/extracted.pvtu";
     //std::string testDataset = "/Users/aaronkno/Downloads/ts499.vtu"
     //std::string testDataset = "/projects/groups/vizproject/HACC_Halo/cinemac/testdata/extracted.pvtu"
-
-    filename = testDataset;
 
     int width, height;
     width =  512;
@@ -40,25 +38,24 @@ int main(int argc, char *argv[])
             width = std::stoi(argv[++i]);
             height = std::stoi(argv[++i]);
         }
-        else if (arg == "-f" || arg == "--filename") {
-            filename = argv[++i];
+        else if (arg == "-f" || arg == "--outFilename") {
+            outFilename = argv[++i];
         }
         else if (arg == "-d" || arg == "--data") {
             testDataset = argv[++i];
             useTestData = true;
         }
         else {
-            std::cerr << "Unknown argument, assuming it is a filename): " << argv[i] << std::endl;
-            filename = argv[i];
+            std::cerr << "Unknown argument: " << argv[i] << std::endl;
         }
     }
 
-    debugLog << "Renderer: " << renderer << ", dims: " << width << " x " << height << " - filename: " << filename << std::endl;
+    debugLog << "Renderer: " << renderer << ", dims: " << width << " x " << height << " - outFilename: " << outFilename << std::endl;
 
 
 
      // create a writer
-    CinDatabase writer(filename + ".cdb", renderer, dataLoader);
+    CinDatabase writer(outFilename + ".cdb", renderer, dataLoader);
 
 
     std::vector<float> point_x, point_y, point_z;
@@ -66,7 +63,7 @@ int main(int argc, char *argv[])
     
     if (useTestData)
     {
-        writer.cinRenderer->cinDataLoader->setFilename(filename);
+        writer.cinRenderer->cinDataLoader->setFilename(testDataset);
         writer.cinRenderer->cinDataLoader->load();
     }
     else
@@ -93,7 +90,7 @@ int main(int argc, char *argv[])
     writer.createCinemaDB(width, height);
 
 
-    writeLog(filename, debugLog.str());
+    writeLog(outFilename, debugLog.str());
 
     return 1;
 }

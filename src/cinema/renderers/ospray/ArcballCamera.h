@@ -32,6 +32,10 @@ class ArcballCamera
   void zoom(float amount);
   void pan(const vec2f &delta);
 
+  void setRotation(rkcommon::math::quaternionf q);
+  void axisRotation(const vec3f& axis, const float angle);
+  void setAxisRotation(const vec3f& axis, const float angle);
+
   vec3f eyePos() const;
   vec3f center() const;
   vec3f lookDir() const;
@@ -70,6 +74,32 @@ inline void ArcballCamera::rotate(const vec2f &from, const vec2f &to)
   updateCamera();
 }
 
+void ArcballCamera::axisRotation(const vec3f& axis, const float angle)
+{
+  rkcommon::math::quaternionf qr(axis.x * sinf(angle * .5f),
+                                 axis.y * sinf(angle * .5f), 
+                                 axis.z * sinf(angle * .5f), 
+                                 cos(angle * .5f));
+  rotation = qr * rotation;
+  updateCamera();
+}
+
+void ArcballCamera::setAxisRotation(const vec3f& axis, const float angle)
+{
+  rkcommon::math::quaternionf qr(axis.x * sinf(angle * .5f),
+                                 axis.y * sinf(angle * .5f), 
+                                 axis.z * sinf(angle * .5f), 
+                                 cos(angle * .5f));
+  rotation = qr;
+  updateCamera();
+}
+
+
+void ArcballCamera::setRotation(rkcommon::math::quaternionf q)
+{
+  rotation = q;
+  updateCamera();
+}
 inline void ArcballCamera::zoom(float amount)
 {
   amount *= zoomSpeed;

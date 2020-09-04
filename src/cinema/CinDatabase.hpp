@@ -33,7 +33,7 @@ CinDatabase::CinDatabase(std::string dbName, std::string renderer, std::string d
 	path = dbName;
 	createFolder(path);
 
-	std::string imageFolder = path + "/image";
+	std::string imageFolder = path + "/image-" + renderer;
 	createFolder(imageFolder);
 
 	cinRenderer = CinRendererFactory::createRenderer(renderer);

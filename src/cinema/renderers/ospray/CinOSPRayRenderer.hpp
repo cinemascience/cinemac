@@ -25,6 +25,8 @@
 
 //#include <vtkCamera.h>
 
+#include <cmath>
+
 using namespace ospray;
 using namespace rkcommon;
 using namespace rkcommon::math;
@@ -235,7 +237,10 @@ void CinOSPRayRenderer::render()
 		cam_pos.x -= bounds.size().x * .1f;
 
 		//AARONBAD -- need to figure out how to rotate a quaternion camera using phi and theta
-		arcball.rotate( vec2f(0.f, 0.f), vec2f(0.1f, 0.f) );
+		//arcball.rotate( vec2f(0.f, 0.f), vec2f(0.1f, 0.f) );
+		arcball.setAxisRotation(vec3f(0,0,1), (*_pt).first * M_PI / 180.f);
+		arcball.setAxisRotation(vec3f(1,0,0), (*_pt).second * M_PI / 180.f);
+
 		cam_pos = arcball.eyePos();
 		cam_up = arcball.upDir();
 		cam_view = arcball.lookDir();
@@ -270,7 +275,8 @@ void CinOSPRayRenderer::render()
 		for (uint32_t y=0; y<imgSize.y; y++)
 			for (uint32_t x=0; x<imgSize.x; x++)
 			{
-				const uint32_t index = (x + y * imgSize.x) * 4;
+				//const uint32_t index = (x + y * imgSize.x) * 4;
+				size_t index = ((height-1-y) * width *4) + x*4;
 
 				//size_t index = ((height-1-y) * width *4) + x*4;
 				imgs[i].pixels[index + 0] = fb[index + 0];
