@@ -18,11 +18,14 @@ int main(int argc, char *argv[])
     std::string dataLoader = "VTK-UNSTRUCTURED";
 
     bool useTestData = true;
+
     std::string testDataset = "/home/pascal/projects/cinemac/testdata/extracted.pvtu";
-    //std::string testDataset = "/Users/aaronkno/work/intel/cinemac/testdata/extracted.pvtu"
+    //std::string testDataset = "/Users/aaronkno/work/intel/cinemac/testdata/extracted.pvtu";
+    //std::string testDataset = "/Users/aaronkno/Downloads/ts499.vtu"
     //std::string testDataset = "/projects/groups/vizproject/HACC_Halo/cinemac/testdata/extracted.pvtu"
 
-    
+    filename = testDataset;
+
     int width, height;
     width =  512;
     height = 512;
@@ -63,7 +66,7 @@ int main(int argc, char *argv[])
     
     if (useTestData)
     {
-        writer.cinRenderer->cinDataLoader->setFilename(testDataset);
+        writer.cinRenderer->cinDataLoader->setFilename(filename);
         writer.cinRenderer->cinDataLoader->load();
     }
     else
