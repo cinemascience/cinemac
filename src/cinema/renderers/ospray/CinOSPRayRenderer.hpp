@@ -35,7 +35,7 @@ using namespace rkcommon::math;
 #include "image.hpp"
 
 
-cpp::TransferFunction makeTransferFunction(const vec2f &valueRange, const std::string tfColorMap = "jet2", const std::string tfOpacityMap = "jet" )
+cpp::TransferFunction makeTransferFunction(const vec2f &valueRange, const std::string tfColorMap = "bluewhiteyellow", const std::string tfOpacityMap = "linearclamp2" )
 {
   cpp::TransferFunction transferFunction("piecewiseLinear");
 
@@ -62,6 +62,17 @@ cpp::TransferFunction makeTransferFunction(const vec2f &valueRange, const std::s
     colors.emplace_back(0, 0, 1);
     colors.emplace_back(0, 1, 0);
     colors.emplace_back(1, 0, 0);
+  } else if (tfColorMap == "bluewhite") {
+    colors.emplace_back(0, 0, 0);
+    colors.emplace_back(0, 0, 1);
+    colors.emplace_back(0, 0, 1);
+    colors.emplace_back(1, 1, 1);
+  } else if (tfColorMap == "bluewhiteyellow") {
+    colors.emplace_back(0, 0, 0);
+    colors.emplace_back(0, 0, 1);
+    colors.emplace_back(0, 0, 1);
+    colors.emplace_back(1, 1, 1);
+    colors.emplace_back(1, .7, .2);
   } else {
     colors.emplace_back(0.f, 0.f, 0.f);
     colors.emplace_back(1.f, 1.f, 1.f);
@@ -78,6 +89,19 @@ cpp::TransferFunction makeTransferFunction(const vec2f &valueRange, const std::s
     opacities.emplace_back(5.f);
 	opacities.emplace_back(1.f);
 	opacities.emplace_back(0.f);
+  }  
+  else if (tfOpacityMap == "linearclamp") {
+    opacities.emplace_back(0.f);
+    opacities.emplace_back(.01f);
+	opacities.emplace_back(.1f);
+	opacities.emplace_back(.5f);
+  }
+  else if (tfOpacityMap == "linearclamp2") {
+    opacities.emplace_back(0.f);
+    opacities.emplace_back(.01f);
+	opacities.emplace_back(.1f);
+	opacities.emplace_back(.5f);
+	opacities.emplace_back(.7f);
   }
 
   transferFunction.setParam("color", cpp::CopiedData(colors));
@@ -168,8 +192,16 @@ void CinOSPRayRenderer::render()
 	std::cerr << "points_vec3f.size() = " << points_vec3f.size() << std::endl;
 	std::cerr << "bounds.size() = " << bounds.size() << std::endl;
 
-	const float fixed_radius = length(bounds.size()) / (1.5f * 100.f);
+	float fixed_radius = 0.5f;
+	float fixed_weight = 0.5f;
+
+	if (getenv("CINEMAC_OSP_RADIUS"))
+		fixed_radius = std::stof(getenv("CINEMAC_OSP_RADIUS"));
+	if (getenv("CINEMAC_OSP_WEIGHT"))
+		fixed_weight = std::stof(getenv("CINEMAC_OSP_WEIGHT"));
+
 	std::cerr << "fixed_radius = " << fixed_radius << std::endl;
+	std::cerr << "fixed_weight = " << fixed_weight << std::endl;
 
 	for(int i=0; i<points_vec3f.size(); i++)
 	{
@@ -178,7 +210,7 @@ void CinOSPRayRenderer::render()
 		p = (p - bounds.lower) * vec3f(100.f) / bounds.size(); 
 		//radius_float.push_back(fixed_radius);
 		radius_float.push_back(.5f);
-		weight_float.push_back(.25f);
+		weight_float.push_back(.5f);
 	}
 
 	bounds.lower = vec3f(0.f);
@@ -194,7 +226,16 @@ void CinOSPRayRenderer::render()
 	volume.commit();
 
 	cpp::VolumetricModel model(volume);
-	model.setParam("transferFunction", makeTransferFunction(vec2f(0.f, 1.f)));
+	std::string cmapString = "bluewhite";
+	std::string omapString = "linearclamp";
+
+	if (getenv("CINEMAC_OSP_CMAP"))
+		cmapString = std::string(getenv("CINEMAC_OSP_CMAP"));
+
+	if (getenv("CINEMAC_OSP_OMAP"))
+		omapString = std::string(getenv("CINEMAC_OSP_OMAP"));
+
+	model.setParam("transferFunction", makeTransferFunction(vec2f(0.f, 1.f), cmapString, omapString));
 	model.commit();
 
 	cpp::Group group;
@@ -214,8 +255,18 @@ void CinOSPRayRenderer::render()
 	world.setParam("light", cpp::CopiedData(light));
 	world.commit();
 
-	cpp::Renderer renderer("scivis");
-	renderer.setParam("pixelSamples", 1);
+	std::string rendererName = "scivis";
+	int spp = 1;
+
+
+	if (getenv("CINEMAC_OSP_RENDERER"))
+		rendererName = std::string(getenv("CINEMAC_OSP_RENDERER"));
+
+	if (getenv("CINEMAC_OSP_SPP"))
+		spp = std::stoi(getenv("CINEMAC_OSP_SPP"));
+
+	cpp::Renderer renderer(rendererName);
+	renderer.setParam("pixelSamples", spp);
 	//renderer.setParam("backgroundColor", 1.0f); // white, transparent
 
 	renderer.setParam("volumeSamplingRate", 1.f);

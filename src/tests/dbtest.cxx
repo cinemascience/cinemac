@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
             width = std::stoi(argv[++i]);
             height = std::stoi(argv[++i]);
         }
-        else if (arg == "-f" || arg == "--outFilename") {
+        else if (arg == "-o" || arg == "--outFilename") {
             outFilename = argv[++i];
         }
         else if (arg == "-d" || arg == "--data") {
@@ -80,11 +80,19 @@ int main(int argc, char *argv[])
 
         writer.cinRenderer->addData( Structure(numPoints, point_x, point_y, point_z) );
     }
+
+    if (getenv("CINEMAC_ONE_IMAGE") != 0)
+        writer.addCameraPosition( 0,  0);
+    else
+    {
+        // set camera positions 
+        for (float phi=0; phi<350; phi+=60)
+            for (float theta=0; theta<350; theta+=60) 
+            writer.addCameraPosition( phi,  theta);
+    }
+    
+
    
-    // set camera positions 
-    for (float phi=0; phi<350; phi+=60)
-        for (float theta=0; theta<350; theta+=60) 
-          writer.addCameraPosition( phi,  theta);
 
     // write the database
     writer.createCinemaDB(width, height);
