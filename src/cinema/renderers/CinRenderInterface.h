@@ -13,7 +13,9 @@ Authors:
 #include <utility> 
 
 #include "image.hpp"
+#include "dataStructures.hpp"
 
+#include "CinDataLoaderFactory.h"
 
 
 class CinRenderInterface
@@ -24,29 +26,23 @@ class CinRenderInterface
   protected:
 	int height, width;
 	std::vector< std::pair <float,float> > phi_theta; 
-	float radius;
-	float center[3];
-	float extents[6];
 
-	std::vector<float> points;		// we are only rendering points for now
-	std::vector<float> vel;
-
-	std::vector<Image> imgs;		// results stored here
+	std::vector<Structure> structuresList;  // data is in here
+	std::vector<Image> imgs;				// results stored here
 	
   public:
+	CinLoaderInterface *cinDataLoader;
+
 	
 	CinRenderInterface(){};
 	CinRenderInterface(int w, int h):width(w),height(h){};
 	~CinRenderInterface(){};
 
-	void setOrigin(float _x, float _y, float _z){ center[0]=_x; center[1]=_y; center[2]=_z; }
-    void setRegionRadius(float r){ radius = r; }
-	void setExtents(float _extents[6]){ for (int i=0;i<6;i++) extents[i]=_extents[i]; }
+	void addData(Structure temp){ structuresList.push_back(temp); }
 
 	void setWindowSize(int w, int h);
 	void setCameraPositions(std::vector< std::pair <float,float> > _phi_theta);
-	void setDataPoints(std::vector<float>_x, std::vector<float>_y, std::vector<float>_z);
-	void setPointVel(std::vector<float>_vx, std::vector<float>_vy, std::vector<float>_vz);
+
 	void createPNG(std::string filename, int index);
 	void createJPG(std::string filename, int index);
 
@@ -70,29 +66,6 @@ inline void CinRenderInterface::setCameraPositions(std::vector< std::pair <float
 	imgs.resize( phi_theta.size() );
 	for (int i=0; i<phi_theta.size(); i++)
 		imgs[i].createImage(height, width);
-}
-
-
-inline void CinRenderInterface::setDataPoints(std::vector<float>_x, std::vector<float>_y, std::vector<float>_z)
-{
-	int numPoints = _x.size();
-	for (size_t i=0; i<numPoints ; i++)
-	{
-		points.push_back(_x[i]);
-		points.push_back(_y[i]);
-		points.push_back(_z[i]);
-	}
-}
-
-inline void CinRenderInterface::setPointVel(std::vector<float>_vx, std::vector<float>_vy, std::vector<float>_vz)
-{
-	int numPoints = _vx.size();
-	for (size_t i=0; i<numPoints ; i++)
-	{
-		points.push_back(_vx[i]);
-		points.push_back(_vy[i]);
-		points.push_back(_vz[i]);
-	}
 }
 
 

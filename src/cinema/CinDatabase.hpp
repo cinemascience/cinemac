@@ -6,10 +6,12 @@
 #include <sstream>
 #include <utility> 
 
-#include <timer.hpp> 
+#include "timer.hpp" 
 #include "utils.hpp"
 #include "log.hpp"
 #include "CinRendererFactory.h"
+
+
 
 class CinDatabase
 {
@@ -19,13 +21,13 @@ class CinDatabase
   public:
 	CinRenderInterface *cinRenderer;
 
-    CinDatabase(std::string dbName, std::string renderer);
+    CinDatabase(std::string dbName, std::string renderer, std::string dataLoader);
 	void addCameraPosition(float phi, float theta);
 	void createCinemaDB(int width, int height);
 };
 
 
-CinDatabase::CinDatabase(std::string dbName, std::string renderer)
+CinDatabase::CinDatabase(std::string dbName, std::string renderer, std::string dataLoader)
 {
 	// Create the folders for the cinema database
 	path = dbName;
@@ -35,6 +37,7 @@ CinDatabase::CinDatabase(std::string dbName, std::string renderer)
 	createFolder(imageFolder);
 
 	cinRenderer = CinRendererFactory::createRenderer(renderer);
+	cinRenderer->cinDataLoader = CinDataLoaderFactory::createLoader(dataLoader);
 }
 
 
@@ -59,6 +62,7 @@ inline void CinDatabase::createCinemaDB(int width, int height)
 	cinRenderer->render();
   clock.stop("render");
   debugLog << "Render: " << clock.getDuration("render") << " s" << std::endl;
+
 
   clock.start("create_struc");
 

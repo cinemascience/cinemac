@@ -13,6 +13,7 @@ set (PRJ_LIBS "")
 include_directories(${CMAKE_SOURCE_DIR})
 include_directories(${CMAKE_SOURCE_DIR}/cinema)
 include_directories(${CMAKE_SOURCE_DIR}/cinema/renderers)
+include_directories(${CMAKE_SOURCE_DIR}/cinema/readers)
 include_directories(${CMAKE_SOURCE_DIR}/cinema/utils)
 
 set(CMAKE_CXX_FLAGS "-std=c++17")

@@ -9,6 +9,9 @@
 #ifdef HAS_VTK_RENDERER
 
 #include <vtkFloatArray.h>
+#include <vtkSphereSource.h>
+#include <vtkPolyData.h>
+#include <vtkPolyDataMapper.h>
 #include <vtkActor.h>
 #include <vtkCamera.h>
 #include <vtkDataSetMapper.h>
@@ -46,16 +49,11 @@
 
 class CinVTKRenderer : public CinRenderInterface
 {
-	vtkUnstructuredGrid *   input;
+	//vtkUnstructuredGrid *   input;
     bool                    loaded;
 
-    UnstructuredGrid pointData;
-	DensityCompute densityBins;
-
     // pipeline
-    vtkActor *                      actor;
     vtkCamera *                     camera;
-    vtkDataSetMapper *              mapper;
     vtkXMLPUnstructuredGridReader * reader;
     vtkRenderer *                   renderer;
     vtkRenderWindow *               renderWin;
@@ -65,8 +63,11 @@ class CinVTKRenderer : public CinRenderInterface
   public:
 	CinVTKRenderer();
 
-	void setData( vtkUnstructuredGrid * data );
+	//void setData( vtkUnstructuredGrid * data );
 	void setCameraPosition(float phi, float theta);
+
+	void renderHalo(float *pos, float *vel, float center[3], float centerColor[3], float rad, size_t numPoints);
+	void renderPoints(float *pos, size_t numPoints);
 
 	void init();
 	void render();
@@ -75,23 +76,14 @@ class CinVTKRenderer : public CinRenderInterface
 
 inline CinVTKRenderer::CinVTKRenderer()
 {
-	input     = 0;
+	//input     = 0;
 	reader    = vtkXMLPUnstructuredGridReader::New(); 
-	mapper    = vtkDataSetMapper::New();
-	actor     = vtkActor::New();
 	camera    = vtkCamera::New();
 	renderer  = vtkRenderer::New();
 	renderWin = vtkRenderWindow::New();
 
 	pngWriter = vtkPNGWriter::New();
 }
-
-
-inline void CinVTKRenderer::setData( vtkUnstructuredGrid * data )
-{
-	input = data;
-}
-
 
 
 inline void CinVTKRenderer::setCameraPosition(float phi, float theta)
@@ -101,76 +93,94 @@ inline void CinVTKRenderer::setCameraPosition(float phi, float theta)
 }
 
 
+inline void CinVTKRenderer::renderHalo(float *pos, float *vel, float center[3], float centerColor[3], float rad, size_t numPoints)
+{
+	// Create a sphere at the center
+	vtkSmartPointer<vtkSphereSource> sphereSource = vtkSmartPointer<vtkSphereSource>::New();
+  	sphereSource->SetPhiResolution(100);
+  	sphereSource->SetThetaResolution(100);
+	sphereSource->SetRadius(rad);
+
+	vtkSmartPointer<vtkPolyDataMapper> sphereMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  	sphereMapper->SetInputConnection(sphereSource->GetOutputPort());
+
+	vtkSmartPointer<vtkActor> sphereActor = vtkSmartPointer<vtkActor>::New();
+	sphereActor->SetMapper(sphereMapper);
+	sphereActor->GetProperty()->SetColor(centerColor[0], centerColor[1], centerColor[2]);
+	sphereActor->GetProperty()->SetAmbient(0.3);
+	sphereActor->GetProperty()->SetDiffuse(0.875);
+	sphereActor->GetProperty()->SetSpecular(0.0);
+	sphereActor->GetProperty()->SetSpecularPower(25.0);
+	sphereActor->AddPosition(center[0], center[1], center[2]);
+
+	std::cout << "center: " << center[0] << ", " << center[1] << ", " << center[2] << std::endl;
+	std::cout << "centerColor: " << centerColor[0] << ", " << centerColor[1] << ", " << centerColor[2] << std::endl;
+
+
+	// points
+	UnstructuredGrid pointData;
+	pointData.setPoints(pos, numPoints, VTK_VERTEX);
+
+	vtkSmartPointer<vtkDataSetMapper> pointsMapper = vtkSmartPointer<vtkDataSetMapper>::New();
+	pointsMapper->SetInputData( pointData.uGrid );
+
+	vtkSmartPointer<vtkActor> pointsActor = vtkSmartPointer<vtkActor>::New();
+	pointsActor->SetMapper(pointsMapper);
+	pointsActor->GetProperty()->EdgeVisibilityOn();
+	pointsActor->GetProperty()->SetPointSize(0.25);
+	pointsActor->GetProperty()->SetOpacity(0.5);
+
+
+	renderer->AddActor(sphereActor);
+	renderer->AddActor(pointsActor);
+}
+
+
+inline void CinVTKRenderer::renderPoints(float *pos, size_t numPoints)
+{
+	// points
+	UnstructuredGrid pointData;
+	pointData.setPoints(pos, numPoints, VTK_VERTEX);
+
+	vtkSmartPointer<vtkDataSetMapper> pointsMapper = vtkSmartPointer<vtkDataSetMapper>::New();
+	pointsMapper->SetInputData( pointData.uGrid );
+
+	vtkSmartPointer<vtkActor> pointsActor = vtkSmartPointer<vtkActor>::New();
+	pointsActor->SetMapper(pointsMapper);
+	pointsActor->GetProperty()->EdgeVisibilityOn();
+	pointsActor->GetProperty()->SetPointSize(0.25);
+	pointsActor->GetProperty()->SetOpacity(0.5);
+
+	renderer->AddActor(pointsActor);
+}
+
+
 inline void CinVTKRenderer::init()
 {
-	// Set the points to use
-	pointData.setPoints(&points[0], points.size()/3, VTK_VERTEX);
+	// Render elements
 
-	size_t numPoints = points.size()/3;
-	//densityBins.init(20,20,20,  center[0],center[1],center[2], radius);
-	densityBins.init(20,20,20,  extents);
-	densityBins.computeDensity( &points[0], numPoints);
+	// for (int i=0; i<structuresList.size(); i++)
+	// 	renderHalo(&structuresList[i].pos[0], &structuresList[i].vel[0], structuresList[i].center, 
+	// 				structuresList[i].centerColor, structuresList[i].radius, structuresList[i].numPoints);
 
+	for (int i=0; i<cinDataLoader->myData.variables.size(); i++)
+	{
+		size_t numPoints = cinDataLoader->myData.variables[i].dimSize[0] *
+						   cinDataLoader->myData.variables[i].dimSize[1] * 
+						   cinDataLoader->myData.variables[i].dimSize[2];
 
-	// Create the color map
-	vtkSmartPointer<vtkLookupTable> colorLookupTable = vtkSmartPointer<vtkLookupTable>::New();
-	colorLookupTable->SetTableRange(densityBins.getMinDensity(), densityBins.getMaxDensity());
-	colorLookupTable->Build();
-
-	// Generate the colors for each point based on the color map
-  	vtkSmartPointer<vtkUnsignedCharArray> colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
-  	colors->SetNumberOfComponents(3);
-  	colors->SetName("Colors");
-
-  	for(size_t i=0; i<numPoints; i++)
-    {
-		float _x, _y, _z;
-		_x = points[i*3 + 0];  
-        _y = points[i*3 + 1];  
-        _z = points[i*3 + 2];
-
-		double val = densityBins.getDensity(_x, _y, _z);
-		//std::cout << "val: " << val << std::endl;
-		
-		double dcolor[3];
-		colorLookupTable->GetColor(val, dcolor);
-		//std::cout << "val:" << val << " dcolor: " << dcolor[0] << " " << dcolor[1] << " " << dcolor[2] << std::endl;
-
-		// unsigned char color[3];
-		// for(unsigned int j = 0; j < 3; j++)
-		// 	color[j] = 255 * dcolor[j]/1.0;
-		// //std::cout << "color: " << (int)color[0] << " " << (int)color[1] << " " << (int)color[2] << std::endl;
-		
-		//colors->InsertNextTupleValue(color);
-		colors->InsertTuple(i,dcolor);
-    }
-  	pointData.uGrid->GetPointData()->SetScalars(colors);
+		float center[3] = {4.6, 5.9, 0.45};
+		float centerColor[3] = {0.5,0.1,0.7};
+		renderHalo(cinDataLoader->myData.variables[i].data, cinDataLoader->myData.variables[i].data, center,
+				   centerColor,  0.05,  numPoints);
+	}
 
 
 	// Set up renderer
-	mapper->SetInputData( pointData.uGrid );
-	mapper->ScalarVisibilityOn();
-  	mapper->SetScalarModeToUsePointData();
-  	mapper->SetColorModeToMapScalars();
-	mapper->SetLookupTable(colorLookupTable);
-
-	actor->SetMapper(mapper);
-	actor->GetProperty()->EdgeVisibilityOn();
-	actor->GetProperty()->SetPointSize(0.25);
-	actor->GetProperty()->SetOpacity(0.5);
-
-	vtkSmartPointer<vtkScalarBarActor> scalarBar = vtkSmartPointer<vtkScalarBarActor>::New();
-  	scalarBar->SetLookupTable(mapper->GetLookupTable());
-  	scalarBar->SetNumberOfLabels(4);
-	scalarBar->SetLookupTable( colorLookupTable );
-
 	renderer->SetActiveCamera(camera);
 	renderWin->SetOffScreenRendering(1);       // for offscreen
 	renderWin->AddRenderer(renderer);
 
-	//Add the actor to the scene
-	renderer->AddActor(actor);
-	renderer->AddActor2D(scalarBar);
 	renderer->ResetCamera();
 
 	renderWin->SetSize(width, height);

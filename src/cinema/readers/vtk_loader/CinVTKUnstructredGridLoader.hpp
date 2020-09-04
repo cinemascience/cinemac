@@ -19,8 +19,16 @@
 
 #include <vtkXMLPUnstructuredGridReader.h>
 
+#include "CinLoaderInterface.h"
 
-inline size_t readData(std::string filename, std::vector<float> &vecX, std::vector<float> &vecY, std::vector<float> &vecZ, float extents[6])
+class CinVtkUnstructuredGridLoader: public CinLoaderInterface
+{
+	void init(){};
+	void load();
+};
+
+
+inline void CinVtkUnstructuredGridLoader::load()
 {
 	vtkSmartPointer<vtkXMLPUnstructuredGridReader> reader = vtkSmartPointer<vtkXMLPUnstructuredGridReader>::New();
   	reader->SetFileName(filename.c_str());
@@ -28,7 +36,6 @@ inline size_t readData(std::string filename, std::vector<float> &vecX, std::vect
 
 	vtkDataArray* arrayX = reader->GetOutput()->GetPointData()->GetArray("x");
 	vtkFloatArray* farrayX = vtkFloatArray::SafeDownCast(arrayX); 
-
 
 	vtkDataArray* arrayY = reader->GetOutput()->GetPointData()->GetArray("y");
 	vtkFloatArray* farrayY = vtkFloatArray::SafeDownCast(arrayY); 
@@ -38,25 +45,21 @@ inline size_t readData(std::string filename, std::vector<float> &vecX, std::vect
 
 	size_t numPoints = reader->GetOutput()->GetNumberOfPoints();
 
+
+	std::vector<float> myDataValues;
+	myDataValues.resize(numPoints*3);
+
 	for (size_t i=0; i<numPoints; i++)
 	{
-		vecX.push_back(farrayX->GetValue(i));
-		vecY.push_back(farrayY->GetValue(i));
-		vecZ.push_back(farrayZ->GetValue(i));
+		myDataValues[0*numPoints+i]=farrayX->GetValue(i);
+		myDataValues[1*numPoints+i]=farrayY->GetValue(i);
+		myDataValues[2*numPoints+i]=farrayZ->GetValue(i);
 	}
 
-	extents[0] = *std::min_element(vecX.begin(), vecX.end());
-	extents[1] = *std::min_element(vecY.begin(), vecY.end());
-	extents[2] = *std::min_element(vecZ.begin(), vecZ.end());
+	myData.addVariable( Variable("position", 1, 1,1,numPoints,  &myDataValues[0]) );
 
-	extents[3] = *std::max_element(vecX.begin(), vecX.end());
-	extents[4] = *std::max_element(vecY.begin(), vecY.end());
-	extents[5] = *std::max_element(vecZ.begin(), vecZ.end());
+	std::cout << "Num points loaded: " << numPoints << std::endl;
 
-	std::cout << "Read in extents: " << extents[0] << ", " << extents[1] << ", " << extents[2] 
-                            << " - " << extents[3] << ", " << extents[4] << ", " << extents[5] << std::endl;
-
-	return numPoints;
 
 	//vtkDataArray* array = ugrid->GetPointData()->GetArray("myscalararrayname");  // to retrieve  he data array from its name
    	//vtkDataArray* array = ugrid->GetPointData()->GetScalars();   // to retrieve the data array tagged as being the active scalar

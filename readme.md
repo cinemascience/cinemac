@@ -9,6 +9,7 @@ This is the repository for the `cinemac` library, a library of C++ based capabil
 
 ````
     source env/darwin.sh
+	spack load /5254leh #vtk@8.2.0
 ````
 
 ## build instructions
