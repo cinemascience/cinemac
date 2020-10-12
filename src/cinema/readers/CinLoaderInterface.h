@@ -14,6 +14,8 @@ Authors:
 #include <algorithm>
 #include <iterator>
 
+#include "dataset.hpp"
+
 struct Variable
 {
 	std::string name;	// e.g pressure, temp, position 
@@ -122,9 +124,13 @@ class CinLoaderInterface
 		Variable temp(x);
 		variables.emplace_back(temp); 
 	}
+
+
+	
 //std::string _name, size_t _numPoints, int _numComponents, float _extents[6], float *_data
 	virtual void init() = 0;	
 	virtual void load() = 0;						// renders to *image  - returns 1 for success
 	void loadVariable(std::string variableName);
+	Dataset getLoadedDataset();
 };
 
